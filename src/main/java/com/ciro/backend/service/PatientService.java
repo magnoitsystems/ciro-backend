@@ -9,6 +9,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class PatientService {
@@ -46,5 +49,37 @@ public class PatientService {
         newPatient.setCreatedBy(creator);
 
         return patientRepository.save(newPatient);
+    }
+
+    public List<PatientDTO> getAllPatients() {
+        List<Patient> patients = patientRepository.findAll();
+
+        return patients.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    private PatientDTO mapToDTO(Patient patient) {
+        PatientDTO dto = new PatientDTO();
+        dto.setFullName(patient.getFullName());
+        dto.setAddress(patient.getAddress());
+        dto.setCity(patient.getCity());
+        dto.setPhone(patient.getPhone());
+        dto.setBirthDate(patient.getBirthDate());
+        dto.setDocumentType(patient.getDocumentType());
+        dto.setDni(patient.getDni());
+        dto.setObraSocial(patient.getObraSocial());
+        dto.setFrom(patient.getFrom());
+        dto.setObservations(patient.getObservations());
+
+        if (patient.getDoctor() != null) {
+            dto.setDoctorId(patient.getDoctor().getId());
+        }
+
+        if (patient.getCreatedBy() != null) {
+            dto.setCreatedById(patient.getCreatedBy().getId());
+        }
+
+        return dto;
     }
 }
