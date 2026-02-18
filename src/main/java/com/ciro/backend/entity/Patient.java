@@ -1,19 +1,24 @@
 package com.ciro.backend.entity;
 
+import com.ciro.backend.enums.DocumentType;
+import com.ciro.backend.enums.HealthInsurance;
 import com.ciro.backend.enums.PatientFrom;
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.List;
+import java.time.LocalDate; // Importante para fechas
 
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "patients")
 public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "full_name")
+    @Column(name = "full_name", nullable = false)
     private String fullName;
 
     @Column
@@ -23,10 +28,21 @@ public class Patient {
     private String city;
 
     @Column
+    private String phone;
+
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "document_type")
+    private DocumentType documentType;
+
+    @Column(nullable = false, unique = true)
     private String dni;
 
-    @Column
-    private String obraSocial;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "obra_social")
+    private HealthInsurance obraSocial;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "origin_from")
@@ -41,5 +57,5 @@ public class Patient {
 
     @ManyToOne
     @JoinColumn(name = "created_by")
-    private User created_by;
+    private User createdBy;
 }
