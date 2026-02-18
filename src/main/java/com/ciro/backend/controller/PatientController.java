@@ -28,4 +28,20 @@ public class PatientController {
         List<PatientDTO> patients = patientService.getAllPatients();
         return ResponseEntity.ok(patients);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PatientDTO> getPatientById(@PathVariable Long id) {
+        PatientDTO patient = patientService.getPatientById(id);
+        return ResponseEntity.ok(patient);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<PatientDTO>> searchPatients(
+            @RequestParam(required = false) String dni,
+            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String city
+    ) {
+        List<PatientDTO> results = patientService.searchPatients(dni, fullName, city);
+        return ResponseEntity.ok(results);
+    }
 }

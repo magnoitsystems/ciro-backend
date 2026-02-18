@@ -82,4 +82,18 @@ public class PatientService {
 
         return dto;
     }
+
+    public PatientDTO getPatientById(Long id) {
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Paciente no encontrado con ID: " + id));
+        return mapToDTO(patient);
+    }
+
+    public List<PatientDTO> searchPatients(String dni, String fullName, String city) {
+        List<Patient> patients = patientRepository.findByFilters(dni, fullName, city);
+
+        return patients.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
 }
