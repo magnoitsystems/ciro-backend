@@ -1,8 +1,8 @@
 package com.ciro.backend.entity;
 
-import com.ciro.backend.enums.BudgetType;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
+
 import java.time.LocalDate;
 
 @Entity
@@ -13,15 +13,13 @@ public class Budget {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    private BudgetType type;
+    @Column(name = "budget_date")
+    private LocalDate uploadedDate;
 
     @ManyToOne
     @JoinColumn(name = "id_patient")
     private Patient patient;
 
-    @Column(name = "budget_date")
-    private LocalDate budgetDate;
-
-    private String observations;
+    @Column
+    private String file_url;
 }
