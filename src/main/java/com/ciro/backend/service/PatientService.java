@@ -7,28 +7,24 @@ import com.ciro.backend.repository.PatientRepository;
 import com.ciro.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class PatientService {
 
-    private final PatientRepository patientRepository;
-    private final UserRepository userRepository;
+    @Autowired
+    private PatientRepository patientRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Transactional
     public Patient createPatient(PatientDTO dto) {
         if (patientRepository.existsByDni(dto.getDni())) {
             throw new RuntimeException("El paciente con DNI " + dto.getDni() + " ya existe.");
-        }
-
-        User doctor = null;
-        if (dto.getDoctorId() != null) {
-            doctor = userRepository.findById(dto.getDoctorId())
-                    .orElseThrow(() -> new RuntimeException("Doctor no encontrado"));
         }
 
         User creator = userRepository.findById(dto.getCreatedById())
