@@ -41,7 +41,6 @@ public class PatientService {
         newPatient.setObraSocial(dto.getObraSocial());
         newPatient.setFrom(dto.getFrom());
         newPatient.setObservations(dto.getObservations());
-        newPatient.setDoctor(doctor);
         newPatient.setCreatedBy(creator);
 
         return patientRepository.save(newPatient);
@@ -67,10 +66,6 @@ public class PatientService {
         dto.setObraSocial(patient.getObraSocial());
         dto.setFrom(patient.getFrom());
         dto.setObservations(patient.getObservations());
-
-        if (patient.getDoctor() != null) {
-            dto.setDoctorId(patient.getDoctor().getId());
-        }
 
         if (patient.getCreatedBy() != null) {
             dto.setCreatedById(patient.getCreatedBy().getId());

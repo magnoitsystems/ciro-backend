@@ -51,10 +51,6 @@ public class Patient {
     private String observations;
 
     @ManyToOne
-    @JoinColumn(name = "id_doctor")
-    private User doctor;
-
-    @ManyToOne
     @JoinColumn(name = "created_by")
     private User createdBy;
 
@@ -140,14 +136,6 @@ public class Patient {
 
     public void setObservations(String observations) {
         this.observations = observations;
-    }
-
-    public User getDoctor() {
-        return doctor;
-    }
-
-    public void setDoctor(User doctor) {
-        this.doctor = doctor;
     }
 
     public User getCreatedBy() {
