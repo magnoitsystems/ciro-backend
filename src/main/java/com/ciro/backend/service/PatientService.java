@@ -83,7 +83,12 @@ public class PatientService {
     }
 
     public List<PatientDTO> searchPatients(String dni, String fullName, String city) {
-        List<Patient> patients = patientRepository.findByFilters(dni, fullName, city);
+        // si no se enviaron todos los parámetros enviamos vacío para que no rompa
+        String safeDni = (dni != null) ? dni : "";
+        String safeFullName = (fullName != null) ? fullName : "";
+        String safeCity = (city != null) ? city : "";
+
+        List<Patient> patients = patientRepository.findByFilters(safeDni, safeFullName, safeCity);
 
         return patients.stream()
                 .map(this::mapToDTO)

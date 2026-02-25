@@ -14,9 +14,9 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     boolean existsByDni(String dni);
 
     @Query("SELECT p FROM Patient p WHERE " +
-            "(:dni IS NULL OR p.dni LIKE CONCAT('%', :dni, '%')) AND " +
-            "(:fullName IS NULL OR LOWER(p.fullName) LIKE LOWER(CONCAT('%', :fullName, '%'))) AND " +
-            "(:city IS NULL OR LOWER(p.city) LIKE LOWER(CONCAT('%', :city, '%')))")
+            "(:dni = '' OR p.dni LIKE CONCAT('%', :dni, '%')) AND " +
+            "(:fullName = '' OR LOWER(p.fullName) LIKE LOWER(CONCAT('%', :fullName, '%'))) AND " +
+            "(:city = '' OR LOWER(p.city) LIKE LOWER(CONCAT('%', :city, '%')))")
     List<Patient> findByFilters(
             @Param("dni") String dni,
             @Param("fullName") String fullName,
