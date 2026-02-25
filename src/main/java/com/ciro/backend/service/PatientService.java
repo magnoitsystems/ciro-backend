@@ -1,6 +1,7 @@
 package com.ciro.backend.service;
 
 import com.ciro.backend.dto.PatientDTO;
+import com.ciro.backend.dto.PatientUpdateDTO;
 import com.ciro.backend.entity.Patient;
 import com.ciro.backend.entity.User;
 import com.ciro.backend.exception.DuplicateResourceException;
@@ -93,5 +94,24 @@ public class PatientService {
         return patients.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public PatientDTO updatePatient(Long id, PatientUpdateDTO updateDTO) {
+        Patient existingPatient = patientRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el paciente con ID: " + id));
+
+        existingPatient.setFullName(updateDTO.getFullName());
+        existingPatient.setAddress(updateDTO.getAddress());
+        existingPatient.setCity(updateDTO.getCity());
+        existingPatient.setPhone(updateDTO.getPhone());
+        existingPatient.setBirthDate(updateDTO.getBirthDate());
+        existingPatient.setObraSocial(updateDTO.getObraSocial());
+        existingPatient.setFrom(updateDTO.getFrom());
+        existingPatient.setObservations(updateDTO.getObservations());
+
+        Patient updatedPatient = patientRepository.save(existingPatient);
+
+        return mapToDTO(updatedPatient);
     }
 }

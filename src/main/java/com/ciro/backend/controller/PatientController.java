@@ -1,6 +1,7 @@
 package com.ciro.backend.controller;
 
 import com.ciro.backend.dto.PatientDTO;
+import com.ciro.backend.dto.PatientUpdateDTO;
 import com.ciro.backend.entity.Patient;
 import com.ciro.backend.service.PatientService;
 import lombok.RequiredArgsConstructor;
@@ -44,5 +45,14 @@ public class PatientController {
     ) {
         List<PatientDTO> results = patientService.searchPatients(dni, fullName, city);
         return ResponseEntity.ok(results);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PatientDTO> updatePatient(
+            @PathVariable Long id,
+            @RequestBody PatientUpdateDTO updateDTO) {
+
+        PatientDTO updatedPatient = patientService.updatePatient(id, updateDTO);
+        return ResponseEntity.ok(updatedPatient);
     }
 }
