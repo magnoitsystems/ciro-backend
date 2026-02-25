@@ -2,6 +2,7 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.UserCreateDTO;
 import com.ciro.backend.entity.User;
+import com.ciro.backend.exception.DuplicateResourceException;
 import com.ciro.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class UserService {
     public User createUser(UserCreateDTO dto) {
 
         if (userRepository.existsByUsername(dto.getUsername())) {
-            throw new RuntimeException("Error: El nombre de usuario '" + dto.getUsername() + "' ya está en uso.");
+            throw new DuplicateResourceException("El username "+ dto.getUsername()+" ya está en uso");
         }
 
         User newUser = new User();
