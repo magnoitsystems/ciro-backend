@@ -145,4 +145,5 @@ public class Patient {
     public void setCreatedBy(User createdBy) {
         this.createdBy = createdBy;
     }
+
 }

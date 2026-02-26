@@ -3,7 +3,6 @@ package com.ciro.backend.controller;
 import com.ciro.backend.dto.MedicalRecordDTO;
 import com.ciro.backend.entity.MedicalRecord;
 import com.ciro.backend.service.MedicalRecordService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -69,5 +68,11 @@ public class MedicalRecordController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(medicalRecordUpdate, HttpStatus.OK);
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<MedicalRecordDTO> deleteMedicalRecord(@PathVariable Long id) {
+        medicalRecordService.deleteMedicalRecord(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

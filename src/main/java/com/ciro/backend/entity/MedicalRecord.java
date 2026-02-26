@@ -1,5 +1,6 @@
 package com.ciro.backend.entity;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -26,6 +27,7 @@ public class MedicalRecord {
 
     @ManyToOne
     @JoinColumn(name = "id_shift")
+    @Nullable
     private Shift shift;
 
     @ManyToOne

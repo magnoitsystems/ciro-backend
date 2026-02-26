@@ -2,8 +2,14 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.MedicalRecordDTO;
 import com.ciro.backend.entity.MedicalRecord;
+import com.ciro.backend.entity.Patient;
+import com.ciro.backend.entity.Shift;
+import com.ciro.backend.entity.User;
 import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.MedicalRecordRepository;
+import com.ciro.backend.repository.PatientRepository;
+import com.ciro.backend.repository.ShiftRepository;
+import com.ciro.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,19 +23,43 @@ public class MedicalRecordService {
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
 
+    @Autowired
+    private PatientRepository patientRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ShiftRepository shiftRepository;
+
+
     @Transactional
-    public MedicalRecord createMedicalRecord(MedicalRecordDTO medicalRecord) {
-        if(!medicalRecordRepository.existByDNIPatient(medicalRecord.getPatient().getDni())){
-            throw new RuntimeException("El paciente con DNI " + medicalRecord.getPatient().getDni() + " no existe.");
+    public MedicalRecord createMedicalRecord(MedicalRecordDTO dto) {
+
+        Patient patient = patientRepository
+                .findByDni(dto.getPatient().getDni());
+//                .orElseThrow(() -> new RuntimeException("Paciente no existe"));
+
+        User doctor = userRepository
+                .findById(dto.getDoctor().getId())
+                .orElseThrow(() -> new RuntimeException("Doctor no existe"));
+
+        Shift shift = new Shift();
+        if(dto.getShift() != null) {
+            shift = shiftRepository
+                    .findById(dto.getShift().getId())
+                    .orElse(null); // si puede ser null
+        } else {
+            shift = null;
         }
 
         MedicalRecord newMedicalRecord = new MedicalRecord();
-        newMedicalRecord.setPatient(medicalRecord.getPatient());
-        newMedicalRecord.setRecordDate(medicalRecord.getRecordDate());
-        newMedicalRecord.setFile(medicalRecord.getFile());
-        newMedicalRecord.setEvaluation(medicalRecord.getEvaluation());
-        newMedicalRecord.setDoctor(medicalRecord.getDoctor());
-        newMedicalRecord.setShift(medicalRecord.getShift());
+        newMedicalRecord.setPatient(patient); // entidad gestionada
+        newMedicalRecord.setDoctor(doctor);
+        newMedicalRecord.setShift(shift);
+        newMedicalRecord.setRecordDate(dto.getRecordDate());
+        newMedicalRecord.setFile(dto.getFile());
+        newMedicalRecord.setEvaluation(dto.getEvaluation());
 
         return medicalRecordRepository.save(newMedicalRecord);
     }
@@ -71,6 +101,12 @@ public class MedicalRecordService {
         return dto;
     }
 
+    public void deleteMedicalRecord(Long id) {
+        if(id >= 0){
+            medicalRecordRepository.deleteById(id);
+        }
+    }
+
     //GETS
 
     //All medical records
@@ -85,14 +121,16 @@ public class MedicalRecordService {
 
     //By medical record id
     public MedicalRecordDTO getMedicalRecordById(Long id) {
-        if(id >= 0){
-            MedicalRecord medicalRecord = medicalRecordRepository.findById(id).isPresent() ? medicalRecordRepository.findById(id).get() : null;
-            if(medicalRecord != null){
-                return mapToDTO(medicalRecord);
-            }
-            return null;
+
+        if (id <= 0) {
+            throw new IllegalArgumentException("ID inválido");
         }
-        return null;
+
+        MedicalRecord medicalRecord = medicalRecordRepository
+                .findById(id)
+                .orElseThrow(() -> new RuntimeException("MedicalRecord no encontrado"));
+
+        return mapToDTO(medicalRecord);
     }
 
     //By doctor id
