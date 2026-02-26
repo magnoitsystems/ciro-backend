@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/receipts")
 public class ReceiptController {
@@ -21,5 +23,23 @@ public class ReceiptController {
 
         ReceiptResponseDTO response = receiptService.createReceipt(dto);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/patient/{patientId}")
+    public ResponseEntity<List<ReceiptResponseDTO>> getReceiptsByPatient(
+            @PathVariable Long patientId) {
+
+        return ResponseEntity.ok(
+                receiptService.getReceiptsByPatient(patientId)
+        );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ReceiptResponseDTO> getReceiptById(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                receiptService.getReceiptById(id)
+        );
     }
 }

@@ -1,7 +1,6 @@
 package com.ciro.backend.dto;
 
 import com.ciro.backend.enums.CurrencyType;
-import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

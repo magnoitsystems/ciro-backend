@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class ReceiptService {
@@ -58,6 +59,37 @@ public class ReceiptService {
                 savedReceipt.getReceiptDate(),
                 savedReceipt.getAmount(),
                 savedReceipt.getCurrencyType()
+        );
+    }
+
+    public List<ReceiptResponseDTO> getReceiptsByPatient(Long patientId) {
+
+        if (!patientRepository.existsById(patientId)) {
+            throw new ResourceNotFoundException("Paciente no encontrado");
+        }
+
+        List<Receipt> receipts = receiptRepository.findByPatientId(patientId);
+
+        return receipts.stream()
+                .map(r -> new ReceiptResponseDTO(
+                        r.getId(),
+                        r.getReceiptDate(),
+                        r.getAmount(),
+                        r.getCurrencyType()
+                ))
+                .toList();
+    }
+
+    public ReceiptResponseDTO getReceiptById(Long id) {
+
+        Receipt receipt = receiptRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Recibo no encontrado"));
+
+        return new ReceiptResponseDTO(
+                receipt.getId(),
+                receipt.getReceiptDate(),
+                receipt.getAmount(),
+                receipt.getCurrencyType()
         );
     }
 }
