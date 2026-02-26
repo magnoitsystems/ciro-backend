@@ -68,7 +68,7 @@ public class ReceiptService {
             throw new ResourceNotFoundException("Paciente no encontrado");
         }
 
-        List<Receipt> receipts = receiptRepository.findByPatientId(patientId);
+        List<Receipt> receipts = receiptRepository.findByPatientIdOrderByReceiptDateDesc(patientId);
 
         return receipts.stream()
                 .map(r -> new ReceiptResponseDTO(

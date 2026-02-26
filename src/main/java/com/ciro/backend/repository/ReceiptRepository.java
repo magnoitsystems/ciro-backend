@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface ReceiptRepository extends JpaRepository<Receipt, Long> {
-    List<Receipt> findByPatientId(Long patientId);
+    List<Receipt> findByPatientIdOrderByReceiptDateDesc(Long patientId);
 }
