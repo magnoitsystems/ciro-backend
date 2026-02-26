@@ -24,7 +24,7 @@ public class CurrentAccount {
     private Receipt receipt;
 
     @Enumerated(EnumType.STRING)
-    private CurrentAccountType type; // VOUCHER o RECEIPT
+    private CurrentAccountType type;
 
     @Column
     private Boolean canceled;
