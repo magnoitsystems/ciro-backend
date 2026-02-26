@@ -5,7 +5,7 @@ import com.ciro.backend.enums.HealthInsurance;
 import com.ciro.backend.enums.PatientFrom;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate; // Importante para fechas
+import java.time.LocalDate;
 
 @Entity
 @NoArgsConstructor
