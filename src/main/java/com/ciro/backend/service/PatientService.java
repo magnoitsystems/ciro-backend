@@ -6,7 +6,6 @@ import com.ciro.backend.entity.User;
 import com.ciro.backend.repository.PatientRepository;
 import com.ciro.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

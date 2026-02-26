@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface PatientRepository extends JpaRepository<Patient, Long> {
@@ -17,6 +16,7 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
             "(:dni IS NULL OR p.dni LIKE CONCAT('%', :dni, '%')) AND " +
             "(:fullName IS NULL OR LOWER(p.fullName) LIKE LOWER(CONCAT('%', :fullName, '%'))) AND " +
             "(:city IS NULL OR LOWER(p.city) LIKE LOWER(CONCAT('%', :city, '%')))")
+
     List<Patient> findByFilters(
             @Param("dni") String dni,
             @Param("fullName") String fullName,
