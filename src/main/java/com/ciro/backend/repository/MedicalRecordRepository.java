@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Long> {
 
@@ -16,5 +18,8 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Lo
 
 
     @Query("SELECT m FROM MedicalRecord m WHERE m.patient.dni = :dni ORDER BY m.recordDate DESC")
-    MedicalRecord getMedicalRecordByPatient(String dni);
+    List<MedicalRecord> getMedicalRecordByPatient(String dni);
+
+    @Query("SELECT m FROM MedicalRecord m WHERE m.doctor.id = :id")
+    List<MedicalRecord> findMedicalRecordByDoctor(Long id);
 }

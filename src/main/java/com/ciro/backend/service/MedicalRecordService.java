@@ -2,12 +2,14 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.MedicalRecordDTO;
 import com.ciro.backend.entity.MedicalRecord;
+import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.MedicalRecordRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class MedicalRecordService {
@@ -32,35 +34,29 @@ public class MedicalRecordService {
         return medicalRecordRepository.save(newMedicalRecord);
     }
 
-    public MedicalRecordDTO getMedicalRecordByDNIPatient(String dni) {
-        MedicalRecord medicalRecord =  medicalRecordRepository.getMedicalRecordByPatient(dni);
+    public MedicalRecordDTO updateMedicalRecord(MedicalRecordDTO medicalRecord, Long id) {
+        MedicalRecord existingMedicalRecord = medicalRecordRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el reporte médico con ID: " + id));
 
-        if(medicalRecord == null){
-            throw new RuntimeException("El paciente con DNI " + dni + " no existe.");
+        if(medicalRecord.getRecordDate() != null){
+            existingMedicalRecord.setRecordDate(medicalRecord.getRecordDate());
+        }
+        if(medicalRecord.getFile() != null){
+            existingMedicalRecord.setFile(medicalRecord.getFile());
+        }
+        if(medicalRecord.getEvaluation() != null){
+            existingMedicalRecord.setEvaluation(medicalRecord.getEvaluation());
+        }
+        if(medicalRecord.getDoctor() != null){
+            existingMedicalRecord.setDoctor(medicalRecord.getDoctor());
+        }
+        if(medicalRecord.getShift() != null){
+            existingMedicalRecord.setShift(medicalRecord.getShift());
         }
 
-        return mapToDTO(medicalRecord);
-    }
+        MedicalRecord updatedMedicalReport = medicalRecordRepository.save(existingMedicalRecord);
 
-    public MedicalRecord updateMedicalRecord(MedicalRecord medicalRecord) {
-        return medicalRecordRepository.findById(medicalRecord.getId()).map(medical -> {
-            if(medicalRecord.getEvaluation() != null){
-                medical.setEvaluation(medicalRecord.getEvaluation());
-            }
-            if(medicalRecord.getDoctor() != null){
-                medical.setDoctor(medicalRecord.getDoctor());
-            }
-            if(medicalRecord.getShift() != null){
-                medical.setShift(medicalRecord.getShift());
-            }
-            if(medicalRecord.getRecordDate() != null){
-                medical.setRecordDate(medicalRecord.getRecordDate());
-            }
-            if(medicalRecord.getPatient() != null){
-                medical.setPatient(medicalRecord.getPatient());
-            }
-            return medicalRecordRepository.save(medical);
-        }).orElseThrow(() -> new RuntimeException("Reporte médico no encontrado"));
+        return mapToDTO(updatedMedicalReport);
     }
 
     public MedicalRecordDTO mapToDTO(MedicalRecord medicalRecord) {
@@ -73,5 +69,58 @@ public class MedicalRecordService {
         dto.setFile(medicalRecord.getFile());
 
         return dto;
+    }
+
+    //GETS
+
+    //All medical records
+    public List<MedicalRecordDTO> getAllMedicalRecords() {
+        List<MedicalRecord> medicalRecords = medicalRecordRepository.findAll();
+        List<MedicalRecordDTO> dtos = new ArrayList<>();
+        for (MedicalRecord medicalRecord : medicalRecords) {
+            dtos.add(mapToDTO(medicalRecord));
+        }
+        return dtos;
+    }
+
+    //By medical record id
+    public MedicalRecordDTO getMedicalRecordById(Long id) {
+        if(id >= 0){
+            MedicalRecord medicalRecord = medicalRecordRepository.findById(id).isPresent() ? medicalRecordRepository.findById(id).get() : null;
+            if(medicalRecord != null){
+                return mapToDTO(medicalRecord);
+            }
+            return null;
+        }
+        return null;
+    }
+
+    //By doctor id
+    public List<MedicalRecordDTO> getMedicalRecordsByDoctor(Long doctorId) {
+        List<MedicalRecord> medicalRecords = medicalRecordRepository.findMedicalRecordByDoctor(doctorId);
+
+        List<MedicalRecordDTO> dtos = new ArrayList<>();
+
+        for (MedicalRecord medicalRecord : medicalRecords) {
+            dtos.add(mapToDTO(medicalRecord));
+        }
+
+        return dtos;
+    }
+
+    //By patient DNI
+    public List<MedicalRecordDTO> getMedicalRecordByDNIPatient(String dni) {
+        List<MedicalRecord> medicalRecord =  medicalRecordRepository.getMedicalRecordByPatient(dni);
+        List<MedicalRecordDTO> dtos = new ArrayList<>();
+
+        if(medicalRecord == null){
+            throw new RuntimeException("El paciente con DNI " + dni + " no existe.");
+        }
+
+        for (MedicalRecord medicalRecord1 : medicalRecord) {
+            dtos.add(mapToDTO(medicalRecord1));
+        }
+
+        return dtos;
     }
 }
