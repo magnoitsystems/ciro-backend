@@ -6,7 +6,6 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Data
 @Table(name = "shifts")
 public class Shift {
     @Id
@@ -26,4 +25,40 @@ public class Shift {
 
     @Enumerated(EnumType.STRING)
     private ShiftStatus status;
+
+    public Long getId() {
+        return id;
+    }
+
+    public Patient getPatient() {
+        return patient;
+    }
+
+    public void setPatient(Patient patient) {
+        this.patient = patient;
+    }
+
+    public User getDoctor() {
+        return doctor;
+    }
+
+    public void setDoctor(User doctor) {
+        this.doctor = doctor;
+    }
+
+    public LocalDateTime getShiftDate() {
+        return shiftDate;
+    }
+
+    public void setShiftDate(LocalDateTime shiftDate) {
+        this.shiftDate = shiftDate;
+    }
+
+    public ShiftStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ShiftStatus status) {
+        this.status = status;
+    }
 }
