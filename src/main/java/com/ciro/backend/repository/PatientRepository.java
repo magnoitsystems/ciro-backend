@@ -22,4 +22,7 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
             @Param("fullName") String fullName,
             @Param("city") String city
     );
+
+    @Query("SELECT p FROM Patient p WHERE p.dni = :dni")
+    Patient findByDni(@Param("dni") String dni);
 }

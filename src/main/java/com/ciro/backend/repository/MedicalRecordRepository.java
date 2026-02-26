@@ -13,8 +13,8 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Lo
 
     @Query("SELECT m FROM MedicalRecord m " +
             "JOIN Patient p ON m.patient.id = p.id " +
-            "WHERE m.patient.dni = :dni")
-    boolean existByDNIPatient(String dni);
+            "WHERE p.dni = :dni")
+    MedicalRecord existByDNIPatient(String dni);
 
 
     @Query("SELECT m FROM MedicalRecord m WHERE m.patient.dni = :dni ORDER BY m.recordDate DESC")
