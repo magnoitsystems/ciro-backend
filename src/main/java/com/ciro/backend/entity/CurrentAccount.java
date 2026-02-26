@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Data
 @Table(name = "current_account")
 public class CurrentAccount {
     @Id
@@ -25,8 +24,52 @@ public class CurrentAccount {
     private Receipt receipt;
 
     @Enumerated(EnumType.STRING)
-    private CurrentAccountType type; // VOUCHER o RECEIPT
+    private CurrentAccountType type;
 
     @Column
     private Boolean canceled;
+
+    public Long getId() {
+        return id;
+    }
+
+    public Patient getPatient() {
+        return patient;
+    }
+
+    public void setPatient(Patient patient) {
+        this.patient = patient;
+    }
+
+    public Voucher getVoucher() {
+        return voucher;
+    }
+
+    public void setVoucher(Voucher voucher) {
+        this.voucher = voucher;
+    }
+
+    public Receipt getReceipt() {
+        return receipt;
+    }
+
+    public void setReceipt(Receipt receipt) {
+        this.receipt = receipt;
+    }
+
+    public CurrentAccountType getType() {
+        return type;
+    }
+
+    public void setType(CurrentAccountType type) {
+        this.type = type;
+    }
+
+    public Boolean getCanceled() {
+        return canceled;
+    }
+
+    public void setCanceled(Boolean canceled) {
+        this.canceled = canceled;
+    }
 }

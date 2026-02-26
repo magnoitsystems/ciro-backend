@@ -1,42 +1,18 @@
-package com.ciro.backend.entity;
+package com.ciro.backend.dto;
 
 import com.ciro.backend.enums.CurrencyType;
-import jakarta.persistence.*;
-import lombok.*;
-import java.time.LocalDate;
+
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
-@Entity
-@Table(name = "receipts")
-public class Receipt {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class ReceiptCreateDTO {
 
-    @Column(name = "receipt_date")
     private LocalDate receiptDate;
-
-    @Column
     private BigDecimal amount;
-
-    @Column
     private String observations;
-
-    @ManyToOne
-    @JoinColumn(name = "id_patient")
-    private Patient patient;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "currency_type")
     private CurrencyType currencyType;
-
-    @ManyToOne
-    @JoinColumn(name = "id_user")
-    private User user;
-
-    public Long getId() {
-        return id;
-    }
+    private Long patientId;
+    private Long userId;
 
     public LocalDate getReceiptDate() {
         return receiptDate;
@@ -62,14 +38,6 @@ public class Receipt {
         this.observations = observations;
     }
 
-    public Patient getPatient() {
-        return patient;
-    }
-
-    public void setPatient(Patient patient) {
-        this.patient = patient;
-    }
-
     public CurrencyType getCurrencyType() {
         return currencyType;
     }
@@ -78,11 +46,19 @@ public class Receipt {
         this.currencyType = currencyType;
     }
 
-    public User getUser() {
-        return user;
+    public Long getPatientId() {
+        return patientId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setPatientId(Long patientId) {
+        this.patientId = patientId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

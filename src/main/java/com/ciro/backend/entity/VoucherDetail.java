@@ -5,7 +5,6 @@ import lombok.*;
 import java.math.BigDecimal;
 
 @Entity
-@Data
 @Table(name = "voucher_details")
 public class VoucherDetail {
     @Id
@@ -24,4 +23,40 @@ public class VoucherDetail {
     @ManyToOne
     @JoinColumn(name = "id_voucher")
     private Voucher voucher;
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getDetail() {
+        return detail;
+    }
+
+    public void setDetail(String detail) {
+        this.detail = detail;
+    }
+
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public int getAmount() {
+        return amount;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
+
+    public Voucher getVoucher() {
+        return voucher;
+    }
+
+    public void setVoucher(Voucher voucher) {
+        this.voucher = voucher;
+    }
 }
