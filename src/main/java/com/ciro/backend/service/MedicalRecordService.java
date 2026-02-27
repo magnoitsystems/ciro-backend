@@ -54,7 +54,7 @@ public class MedicalRecordService {
         }
 
         MedicalRecord newMedicalRecord = new MedicalRecord();
-        newMedicalRecord.setPatient(patient); // entidad gestionada
+        newMedicalRecord.setPatient(patient);
         newMedicalRecord.setDoctor(doctor);
         newMedicalRecord.setShift(shift);
         newMedicalRecord.setRecordDate(dto.getRecordDate());
