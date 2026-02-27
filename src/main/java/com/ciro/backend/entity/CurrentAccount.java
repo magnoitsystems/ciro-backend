@@ -1,8 +1,11 @@
 package com.ciro.backend.entity;
 
+import com.ciro.backend.enums.CurrencyType;
 import com.ciro.backend.enums.CurrentAccountType;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "current_account")
@@ -28,6 +31,21 @@ public class CurrentAccount {
 
     @Column
     private Boolean canceled;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "currency")
+    private CurrencyType currency;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal balance;
+
+    public CurrencyType getCurrency() { return currency; }
+
+    public void setCurrency(CurrencyType currency) { this.currency = currency; }
+
+    public BigDecimal getBalance() { return balance; }
+
+    public void setBalance(BigDecimal balance) { this.balance = balance; }
 
     public Long getId() {
         return id;

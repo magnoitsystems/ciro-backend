@@ -2,6 +2,7 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.*;
 import com.ciro.backend.entity.*;
+import com.ciro.backend.enums.CurrencyType;
 import com.ciro.backend.enums.CurrentAccountType;
 import com.ciro.backend.exception.BadRequestException;
 import com.ciro.backend.exception.ResourceNotFoundException;
@@ -66,6 +67,17 @@ public class VoucherService {
         accountEntry.setVoucher(savedVoucher);
         accountEntry.setType(CurrentAccountType.VOUCHER);
         accountEntry.setCanceled(false);
+
+        CurrencyType txCurrency = savedVoucher.getCurrency();
+        accountEntry.setCurrency(txCurrency);
+
+        BigDecimal previousBalance = currentAccountRepository
+                .findTopByPatientIdAndCurrencyOrderByIdDesc(patient.getId(), txCurrency)
+                .map(CurrentAccount::getBalance)
+                .orElse(BigDecimal.ZERO);
+
+        BigDecimal newBalance = previousBalance.add(totalCalculated);
+        accountEntry.setBalance(newBalance);
 
         currentAccountRepository.save(accountEntry);
 

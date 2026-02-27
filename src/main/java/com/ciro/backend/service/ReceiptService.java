@@ -3,6 +3,7 @@ package com.ciro.backend.service;
 import com.ciro.backend.dto.ReceiptCreateDTO;
 import com.ciro.backend.dto.ReceiptResponseDTO;
 import com.ciro.backend.entity.*;
+import com.ciro.backend.enums.CurrencyType;
 import com.ciro.backend.enums.CurrentAccountType;
 import com.ciro.backend.exception.BadRequestException;
 import com.ciro.backend.exception.ResourceNotFoundException;
@@ -12,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -51,6 +54,17 @@ public class ReceiptService {
         accountEntry.setReceipt(savedReceipt);
         accountEntry.setType(CurrentAccountType.RECEIPT);
         accountEntry.setCanceled(false);
+
+        CurrencyType txCurrency = savedReceipt.getCurrencyType();
+        accountEntry.setCurrency(txCurrency);
+
+        BigDecimal previousBalance = currentAccountRepository
+                .findTopByPatientIdAndCurrencyOrderByIdDesc(patient.getId(), txCurrency)
+                .map(CurrentAccount::getBalance)
+                .orElse(BigDecimal.ZERO);
+
+        BigDecimal newBalance = previousBalance.subtract(dto.getAmount());
+        accountEntry.setBalance(newBalance);
 
         currentAccountRepository.save(accountEntry);
 
