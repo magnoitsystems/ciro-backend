@@ -20,7 +20,7 @@ public class CurrentAccountService {
     @Autowired private PatientRepository patientRepository;
     @Autowired private VoucherDetailRepository voucherDetailRepository;
 
-    public CurrentAccountResponseDTO getPatientCurrentAccount(Long patientId) {
+    public CurrentAccountResponseDTO getPatientCurrentAccount(Long patientId, CurrentAccountType type) {
 
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
@@ -43,7 +43,13 @@ public class CurrentAccountService {
 
         response.setDebtInDollars(latestDollarsBalance.compareTo(BigDecimal.ZERO) > 0 ? latestDollarsBalance : BigDecimal.ZERO);
 
-        List<CurrentAccount> accounts = currentAccountRepository.findByPatientIdOrderByIdDesc(patientId);
+        List<CurrentAccount> accounts;
+        if (type != null) {
+            accounts = currentAccountRepository.findByPatientIdAndTypeOrderByIdDesc(patientId, type);
+        } else {
+            accounts = currentAccountRepository.findByPatientIdOrderByIdDesc(patientId);
+        }
+
         List<CurrentAccountMovementDTO> movements = new ArrayList<>();
 
         for (CurrentAccount acc : accounts) {
