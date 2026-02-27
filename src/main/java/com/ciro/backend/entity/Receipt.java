@@ -34,6 +34,17 @@ public class Receipt {
     @JoinColumn(name = "id_user")
     private User user;
 
+    @Column(name = "exchange_rate", precision = 10, scale = 2)
+    private BigDecimal exchangeRate;
+
+    @Column(name = "converted_amount", precision = 10, scale = 2)
+    private BigDecimal convertedAmount;
+
+    public BigDecimal getExchangeRate() { return exchangeRate; }
+    public void setExchangeRate(BigDecimal exchangeRate) { this.exchangeRate = exchangeRate; }
+    public BigDecimal getConvertedAmount() { return convertedAmount; }
+    public void setConvertedAmount(BigDecimal convertedAmount) { this.convertedAmount = convertedAmount; }
+
     public Long getId() {
         return id;
     }
