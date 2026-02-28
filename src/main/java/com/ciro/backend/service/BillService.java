@@ -6,6 +6,8 @@ import com.ciro.backend.entity.Bill;
 import com.ciro.backend.entity.Supplier;
 import com.ciro.backend.entity.User;
 import com.ciro.backend.enums.BillStatus;
+import com.ciro.backend.enums.BillType;
+import com.ciro.backend.enums.OriginType;
 import com.ciro.backend.exception.BadRequestException;
 import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.BillRepository;
@@ -16,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BillService {
@@ -166,6 +170,60 @@ public class BillService {
                 updatedBill.getCurrencyType(),
                 updatedBill.getFrom(),
                 updatedBill.getBillType()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<BillResponseDTO> getBills(BillType type, OriginType origin) {
+        List<Bill> bills;
+
+        if (type != null && origin != null) {
+            bills = billRepository.findByBillTypeAndFromOrderByBillDateAsc(type, origin);
+        } else if (type != null) {
+            bills = billRepository.findByBillTypeOrderByBillDateAsc(type);
+        } else if (origin != null) {
+            bills = billRepository.findByFromOrderByBillDateAsc(origin);
+        } else {
+            bills = billRepository.findAllByOrderByBillDateAsc();
+        }
+
+        return bills.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    private BillResponseDTO mapToDTO(Bill bill) {
+        String entityName = "Gasto de " + bill.getBillType().name();
+
+        Long employeeId = null;
+        String employeeFullName = null;
+        Long supplierId = null;
+        String supplierFullName = null;
+
+        if (bill.getEmployee() != null) {
+            employeeId = bill.getEmployee().getId();
+            employeeFullName = bill.getEmployee().getName() + " " + bill.getEmployee().getLastname();
+        }
+        else if (bill.getSupplier() != null) {
+            supplierId = bill.getSupplier().getId();
+            supplierFullName = bill.getSupplier().getFullName();
+        }
+
+        return new BillResponseDTO(
+                bill.getId(),
+                entityName,
+                employeeId,
+                employeeFullName,
+                supplierId,
+                supplierFullName,
+                bill.getBillDate(),
+                bill.getAmount(),
+                bill.getDescription(),
+                bill.getStatus(),
+                bill.getPaymentMethod(),
+                bill.getCurrencyType(),
+                bill.getFrom(),
+                bill.getBillType()
         );
     }
 }
