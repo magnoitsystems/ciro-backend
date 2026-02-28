@@ -1,5 +1,6 @@
 package com.ciro.backend.controller;
 
+import com.ciro.backend.dto.NoteDTO;
 import com.ciro.backend.dto.ShiftDTO;
 import com.ciro.backend.entity.Shift;
 import com.ciro.backend.service.ShiftService;
@@ -64,8 +65,8 @@ public class ShiftController {
     }
 
     @PostMapping()
-    public ResponseEntity<ShiftDTO> createShift(@RequestBody ShiftDTO shiftDTO) {
-        Shift newShif = shiftService.createShift(shiftDTO);
+    public ResponseEntity<ShiftDTO> createShift(@RequestBody ShiftDTO shiftDTO, @RequestBody NoteDTO noteDTO) {
+        Shift newShif = shiftService.createShift(shiftDTO, noteDTO);
         if (newShif == null) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }

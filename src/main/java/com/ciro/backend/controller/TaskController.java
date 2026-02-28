@@ -1,5 +1,6 @@
 package com.ciro.backend.controller;
 
+import com.ciro.backend.dto.NoteDTO;
 import com.ciro.backend.dto.TaskDTO;
 import com.ciro.backend.entity.Task;
 import com.ciro.backend.enums.TaskStatus;
@@ -61,8 +62,8 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<TaskDTO> createTask(@RequestBody TaskDTO taskDTO) {
-        Task newTask = taskService.save(taskDTO);
+    public ResponseEntity<TaskDTO> createTask(@RequestBody TaskDTO taskDTO, @RequestBody NoteDTO noteDTO) {
+        Task newTask = taskService.save(taskDTO, noteDTO);
         if(newTask == null){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }

@@ -1,5 +1,6 @@
 package com.ciro.backend.service;
 
+import com.ciro.backend.dto.NoteDTO;
 import com.ciro.backend.dto.ShiftDTO;
 import com.ciro.backend.entity.Patient;
 import com.ciro.backend.entity.Shift;
@@ -21,6 +22,8 @@ public class ShiftService {
     private PatientRepository patientRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private NoteService noteService;
 
     public List<ShiftDTO> getAllShift() {
         List<Shift> shifts = shiftRepository.findAll();
@@ -39,7 +42,7 @@ public class ShiftService {
         return null;
     }
 
-    public Shift createShift(ShiftDTO shiftDTO) {
+    public Shift createShift(ShiftDTO shiftDTO, NoteDTO noteDTO) {
         Patient patient = patientRepository.findByDni(shiftDTO.getPatient().getDni());
 
         User doctor = userRepository.findById(shiftDTO.getDoctor().getId()).orElseThrow( () -> new RuntimeException("Doctor no existe"));
@@ -51,7 +54,14 @@ public class ShiftService {
             newShift.setStatus(shiftDTO.getStatus());
             newShift.setShiftDate(shiftDTO.getShiftDate());
 
-            return shiftRepository.save(newShift);
+            Shift savedShift = shiftRepository.save(newShift);
+
+            if(noteDTO.getDescription() != null && !noteDTO.getDescription().equals("null") && noteDTO.getShift() != null) {
+                noteDTO.setShift(newShift);
+                noteService.createNote(noteDTO);
+            }
+
+            return savedShift;
         }
         return null;
     }

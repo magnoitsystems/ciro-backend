@@ -1,17 +1,20 @@
 package com.ciro.backend.service;
 
-import com.ciro.backend.dto.PatientDTO;
-import com.ciro.backend.dto.PatientUpdateDTO;
-import com.ciro.backend.entity.Patient;
-import com.ciro.backend.entity.User;
+import com.ciro.backend.dto.*;
+import com.ciro.backend.entity.*;
+import com.ciro.backend.enums.TaskPriority;
+import com.ciro.backend.enums.TaskStatus;
 import com.ciro.backend.exception.DuplicateResourceException;
 import com.ciro.backend.exception.ResourceNotFoundException;
+import com.ciro.backend.repository.LabelPatientRepository;
+import com.ciro.backend.repository.LabelRepository;
 import com.ciro.backend.repository.PatientRepository;
 import com.ciro.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,15 +25,23 @@ public class PatientService {
     private PatientRepository patientRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private LabelRepository labelRepository;
+    @Autowired
+    private LabelPatientRepository labelPatientRepository;
+    @Autowired
+    private PracticeService practiceService;
+    @Autowired
+    private TaskService taskService;
 
     @Transactional
     public Patient createPatient(PatientDTO dto) {
         if (patientRepository.existsByDni(dto.getDni())) {
-            throw new DuplicateResourceException("El paciente con el DNI "+ dto.getDni()+" ya existe en el sistema");
+            throw new DuplicateResourceException("El paciente con el DNI " + dto.getDni() + " ya existe en el sistema");
         }
 
         User creator = userRepository.findById(dto.getCreatedById())
-                .orElseThrow(() -> new ResourceNotFoundException("El usuario con ID "+ dto.getCreatedById() +" no existe"));
+                .orElseThrow(() -> new ResourceNotFoundException("El usuario con ID " + dto.getCreatedById() + " no existe"));
 
         Patient newPatient = new Patient();
         newPatient.setFullName(dto.getFullName());
@@ -41,11 +52,26 @@ public class PatientService {
         newPatient.setDocumentType(dto.getDocumentType());
         newPatient.setDni(dto.getDni());
         newPatient.setObraSocial(dto.getObraSocial());
-        newPatient.setFrom(dto.getFrom());
+
+        if (dto.getFrom() != null) {
+            newPatient.setFrom(dto.getFrom());
+        } else {
+            TaskDTO automaticTaskDTO = new TaskDTO();
+            automaticTaskDTO.setUser(creator);
+            automaticTaskDTO.setDescription(newPatient.getDni());
+            automaticTaskDTO.setStatus(TaskStatus.PENDING);
+            automaticTaskDTO.setPriority(TaskPriority.LOW);
+            automaticTaskDTO.setTitle("Buscar información de cómo nos conocieron");
+            createTask(automaticTaskDTO);
+        }
         newPatient.setObservations(dto.getObservations());
         newPatient.setCreatedBy(creator);
 
         return patientRepository.save(newPatient);
+    }
+
+    private void createTask(TaskDTO automaticTaskDTO) {
+        taskService.save(automaticTaskDTO, null);
     }
 
     public List<PatientDTO> getAllPatients() {
@@ -58,6 +84,7 @@ public class PatientService {
 
     private PatientDTO mapToDTO(Patient patient) {
         PatientDTO dto = new PatientDTO();
+
         dto.setFullName(patient.getFullName());
         dto.setAddress(patient.getAddress());
         dto.setCity(patient.getCity());
@@ -112,5 +139,52 @@ public class PatientService {
         Patient updatedPatient = patientRepository.save(existingPatient);
 
         return mapToDTO(updatedPatient);
+    }
+
+    public void deletePatient(Long id){
+        if(id >= 0){
+            patientRepository.deleteById(id);
+        }
+    }
+
+    @Transactional
+    public LabelPatient assignLabel(Long patientId, Long labelId) {
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+
+        Label label = labelRepository.findById(labelId)
+                .orElseThrow(() -> new RuntimeException("Label no encontrado"));
+
+        // evitar duplicados
+        LabelPatient alreadyExists = labelPatientRepository.existsByPatientIdAndLabelId(patientId, labelId);
+
+        if (alreadyExists != null) {
+            throw new RuntimeException("El paciente ya tiene este label");
+        }
+
+        LabelPatient patientLabel = new LabelPatient();
+        patientLabel.setPatient(patient);
+        patientLabel.setLabel(label);
+
+        return labelPatientRepository.save(patientLabel);
+    }
+
+    public StatisticsDTO getPatientsAndStatistics(Long labelId) {
+
+        labelRepository.findById(labelId)
+                .orElseThrow(() -> new RuntimeException("Label no encontrado"));
+
+        List<LabelPatient> relations =
+                labelPatientRepository.findLabelPatientByLabel(labelId);
+
+        List<Patient> patients = relations.stream()
+                .map(LabelPatient::getPatient)
+                .toList();
+
+        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        statisticsDTO.setCount(patients.size());
+        statisticsDTO.setPatients(patients);
+
+        return statisticsDTO;
     }
 }
