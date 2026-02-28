@@ -8,6 +8,7 @@ import com.ciro.backend.entity.User;
 import com.ciro.backend.enums.BillStatus;
 import com.ciro.backend.enums.BillType;
 import com.ciro.backend.enums.OriginType;
+import com.ciro.backend.enums.ReportPeriod;
 import com.ciro.backend.exception.BadRequestException;
 import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.BillRepository;
@@ -17,9 +18,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.ciro.backend.enums.ReportPeriod.*;
 
 @Service
 public class BillService {
@@ -225,5 +230,38 @@ public class BillService {
                 bill.getFrom(),
                 bill.getBillType()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<BillResponseDTO> getPaidBillsForReport(ReportPeriod period, LocalDate referenceDate) {
+        if (referenceDate == null) {
+            referenceDate = LocalDate.now();
+        }
+
+        LocalDate startDate;
+        LocalDate endDate;
+
+        switch (period) {
+            case WEEK:
+                startDate = referenceDate.with(DayOfWeek.MONDAY);
+                endDate = referenceDate.with(DayOfWeek.SUNDAY);
+                break;
+            case MONTH:
+                startDate = referenceDate.with(TemporalAdjusters.firstDayOfMonth());
+                endDate = referenceDate.with(TemporalAdjusters.lastDayOfMonth());
+                break;
+            case DAY:
+            default:
+                startDate = referenceDate;
+                endDate = referenceDate;
+                break;
+        }
+
+        List<Bill> bills = billRepository.findByStatusAndBillDateBetweenOrderByBillDateAsc(
+                BillStatus.PAGADO, startDate, endDate);
+
+        return bills.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 }
