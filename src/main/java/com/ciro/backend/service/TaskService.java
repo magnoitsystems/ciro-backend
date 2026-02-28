@@ -1,11 +1,13 @@
 package com.ciro.backend.service;
 
+import com.ciro.backend.dto.NoteDTO;
 import com.ciro.backend.dto.TaskDTO;
 import com.ciro.backend.entity.Task;
 import com.ciro.backend.entity.User;
 import com.ciro.backend.enums.TaskStatus;
 import com.ciro.backend.repository.TaskRepository;
 import com.ciro.backend.repository.UserRepository;
+import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,8 @@ public class TaskService {
     private TaskRepository taskRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private NoteService noteService;
 
     //GET ALL
     public List<TaskDTO> findAll() {
@@ -60,7 +64,7 @@ public class TaskService {
     }
 
     //POST
-    public Task save(TaskDTO taskDTO) {
+    public Task save(TaskDTO taskDTO, @Nullable NoteDTO noteDTO) {
         User user = userRepository.findById(taskDTO.getUser().getId()).orElseThrow( () -> new RuntimeException("Usuario no encontrado"));
         Task task = new Task();
         task.setUser(user);
@@ -70,7 +74,16 @@ public class TaskService {
         task.setTaskDate(taskDTO.getTaskDate());
         task.setStatus(taskDTO.getStatus());
 
-        return taskRepository.save(task);
+        Task savedTask = taskRepository.save(task);
+
+        if(noteDTO != null){
+            if(noteDTO.getDescription() != null && noteDTO.getShift() != null) {
+                noteDTO.setTask(task);
+                noteService.createNote(noteDTO);
+            }
+        }
+
+        return savedTask;
     }
 
     //PUT

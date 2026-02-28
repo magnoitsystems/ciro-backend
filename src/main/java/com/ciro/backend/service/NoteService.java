@@ -2,8 +2,10 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.NoteDTO;
 import com.ciro.backend.entity.Note;
+import com.ciro.backend.entity.Shift;
 import com.ciro.backend.entity.Task;
 import com.ciro.backend.repository.NoteRepository;
+import com.ciro.backend.repository.ShiftRepository;
 import com.ciro.backend.repository.TaskRepository;
 import org.aspectj.weaver.ast.Not;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,8 @@ public class NoteService {
     private NoteRepository noteRepository;
     @Autowired
     private TaskRepository taskRepository;
+    @Autowired
+    private ShiftRepository shiftRepository;
 
     public List<NoteDTO> getNotes() {
         List<Note> notes = noteRepository.findAll();
@@ -62,7 +66,8 @@ public class NoteService {
             }
 
             if(noteDTO.getShift() != null){
-                note.setShift(noteDTO.getShift());
+                Shift shift = shiftRepository.findById(noteDTO.getShift().getId()).orElseThrow(()->new RuntimeException("Shift no encontrado"));
+                note.setShift(shift);
             }
 
             if(noteDTO.getDescription() != null){
