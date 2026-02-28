@@ -123,32 +123,41 @@ public class BillService {
             existingBill.setPaymentMethod(null);
         }
 
-        String entityName = "Gasto de " + dto.getBillType().name();
         existingBill.setEmployee(null);
         existingBill.setSupplier(null);
+
+        String entityName = "Gasto de " + dto.getBillType().name();
+
+        Long employeeId = null;
+        String employeeFullName = null;
+        Long supplierId = null;
+        String supplierFullName = null;
 
         if (dto.getEmployeeId() != null) {
             User employee = userRepository.findById(dto.getEmployeeId())
                     .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado"));
             existingBill.setEmployee(employee);
-            entityName = employee.getName() + " " + employee.getLastname();
+            employeeId = employee.getId();
+            employeeFullName = employee.getName() + " " + employee.getLastname();
         }
         else if (dto.getSupplierId() != null) {
             Supplier supplier = supplierRepository.findById(dto.getSupplierId())
                     .orElseThrow(() -> new ResourceNotFoundException("Proveedor no encontrado"));
             existingBill.setSupplier(supplier);
-            entityName = supplier.getFullName();
+            supplierId = supplier.getId();
+            supplierFullName = supplier.getFullName();
         }
 
         Bill updatedBill = billRepository.save(existingBill);
 
+
         return new BillResponseDTO(
                 updatedBill.getId(),
                 entityName,
-                updatedBill.getEmployee().getId(),
-                updatedBill.getEmployee().getName(),
-                updatedBill.getSupplier().getId(),
-                updatedBill.getSupplier().getFullName(),
+                employeeId,
+                employeeFullName,
+                supplierId,
+                supplierFullName,
                 updatedBill.getBillDate(),
                 updatedBill.getAmount(),
                 updatedBill.getDescription(),
