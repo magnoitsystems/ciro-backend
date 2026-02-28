@@ -3,6 +3,7 @@ package com.ciro.backend.service;
 import com.ciro.backend.dto.ReceiptCreateDTO;
 import com.ciro.backend.dto.ReceiptResponseDTO;
 import com.ciro.backend.entity.*;
+import com.ciro.backend.enums.CurrencyType;
 import com.ciro.backend.enums.CurrentAccountType;
 import com.ciro.backend.exception.BadRequestException;
 import com.ciro.backend.exception.ResourceNotFoundException;
@@ -12,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -36,11 +40,28 @@ public class ReceiptService {
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
+        BigDecimal targetAmount = dto.getAmount();
+        CurrencyType targetCurrency = dto.getCurrencyType();
+        BigDecimal convertedAmount = null;
+
+        boolean isPesoToDollarConversion = (dto.getCurrencyType() == CurrencyType.PESOS
+                && dto.getExchangeRate() != null
+                && dto.getExchangeRate().compareTo(BigDecimal.ZERO) > 0);
+
+        if (isPesoToDollarConversion) {
+            convertedAmount = dto.getAmount().divide(dto.getExchangeRate(), 2, RoundingMode.HALF_UP);
+
+            targetAmount = convertedAmount;
+            targetCurrency = CurrencyType.DOLARES;
+        }
+
         Receipt receipt = new Receipt();
         receipt.setReceiptDate(dto.getReceiptDate() != null ? dto.getReceiptDate() : LocalDate.now());
         receipt.setAmount(dto.getAmount());
         receipt.setObservations(dto.getObservations());
         receipt.setCurrencyType(dto.getCurrencyType());
+        receipt.setExchangeRate(dto.getExchangeRate());
+        receipt.setConvertedAmount(convertedAmount);
         receipt.setPatient(patient);
         receipt.setUser(user);
 
@@ -52,13 +73,25 @@ public class ReceiptService {
         accountEntry.setType(CurrentAccountType.RECEIPT);
         accountEntry.setCanceled(false);
 
+        accountEntry.setCurrency(targetCurrency);
+
+        BigDecimal previousBalance = currentAccountRepository
+                .findTopByPatientIdAndCurrencyOrderByIdDesc(patient.getId(), targetCurrency)
+                .map(CurrentAccount::getBalance)
+                .orElse(BigDecimal.ZERO);
+
+        BigDecimal newBalance = previousBalance.subtract(targetAmount);
+        accountEntry.setBalance(newBalance);
+
         currentAccountRepository.save(accountEntry);
 
         return new ReceiptResponseDTO(
                 savedReceipt.getId(),
                 savedReceipt.getReceiptDate(),
                 savedReceipt.getAmount(),
-                savedReceipt.getCurrencyType()
+                savedReceipt.getCurrencyType(),
+                savedReceipt.getExchangeRate(),
+                savedReceipt.getConvertedAmount()
         );
     }
 
@@ -75,7 +108,9 @@ public class ReceiptService {
                         r.getId(),
                         r.getReceiptDate(),
                         r.getAmount(),
-                        r.getCurrencyType()
+                        r.getCurrencyType(),
+                        r.getExchangeRate(),
+                        r.getConvertedAmount()
                 ))
                 .toList();
     }
@@ -89,7 +124,9 @@ public class ReceiptService {
                 receipt.getId(),
                 receipt.getReceiptDate(),
                 receipt.getAmount(),
-                receipt.getCurrencyType()
+                receipt.getCurrencyType(),
+                receipt.getExchangeRate(),
+                receipt.getConvertedAmount()
         );
     }
 }

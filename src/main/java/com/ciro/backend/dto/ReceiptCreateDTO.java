@@ -13,6 +13,11 @@ public class ReceiptCreateDTO {
     private CurrencyType currencyType;
     private Long patientId;
     private Long userId;
+    private BigDecimal exchangeRate;
+
+    // Getter y Setter
+    public BigDecimal getExchangeRate() { return exchangeRate; }
+    public void setExchangeRate(BigDecimal exchangeRate) { this.exchangeRate = exchangeRate; }
 
     public LocalDate getReceiptDate() {
         return receiptDate;

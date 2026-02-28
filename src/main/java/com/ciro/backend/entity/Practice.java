@@ -8,7 +8,6 @@ import java.time.LocalDate;
 import java.math.BigDecimal;
 
 @Entity
-@Data
 @Table(name = "practices")
 public class Practice {
     @Id
@@ -37,4 +36,64 @@ public class Practice {
     private Boolean reimplantation;
 
     private BigDecimal amount;
+
+    public Long getId() {
+        return id;
+    }
+
+    public Patient getPatient() {
+        return patient;
+    }
+
+    public void setPatient(Patient patient) {
+        this.patient = patient;
+    }
+
+    public User getDoctor() {
+        return doctor;
+    }
+
+    public void setDoctor(User doctor) {
+        this.doctor = doctor;
+    }
+
+    public LocalDate getPracticeDate() {
+        return practiceDate;
+    }
+
+    public void setPracticeDate(LocalDate practiceDate) {
+        this.practiceDate = practiceDate;
+    }
+
+    public SurgeryType getSurgeryType() {
+        return surgeryType;
+    }
+
+    public void setSurgeryType(SurgeryType surgeryType) {
+        this.surgeryType = surgeryType;
+    }
+
+    public ImplantType getImplantType() {
+        return implantType;
+    }
+
+    public void setImplantType(ImplantType implantType) {
+        this.implantType = implantType;
+    }
+
+    public Boolean getReimplantation() {
+        return reimplantation;
+    }
+
+    public void setReimplantation(Boolean reimplantation) {
+        this.reimplantation = reimplantation;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
 }

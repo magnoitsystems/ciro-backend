@@ -3,7 +3,6 @@ package com.ciro.backend.entity;
 import com.ciro.backend.enums.TaskStatus;
 import com.ciro.backend.enums.TaskPriority;
 import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity

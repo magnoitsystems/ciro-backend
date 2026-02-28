@@ -1,73 +1,35 @@
-package com.ciro.backend.entity;
+package com.ciro.backend.dto;
 
 import com.ciro.backend.enums.*;
-import jakarta.persistence.*;
-import lombok.*;
-import java.time.LocalDate;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
-@Entity
-@Table(name = "bills")
-public class Bill {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToOne
-    @JoinColumn(name = "id_employee", nullable = true)
-    private User employee;
-
-    @ManyToOne
-    @JoinColumn(name = "id_supplier", nullable = true)
-    private Supplier supplier;
-
-    @Column(name = "bill_date")
+public class BillCreateDTO {
+    private Long employeeId;
+    private Long supplierId;
     private LocalDate billDate;
-
-    @Column(nullable = false)
     private BigDecimal amount;
-
-    @Column
     private String description;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
     private BillStatus status;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method")
     private PaymentMethod paymentMethod;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "currency_type", nullable = false)
     private CurrencyType currencyType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "origin_from")
     private OriginType from;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "bill_type", nullable = false)
     private BillType billType;
 
-    public Long getId() {
-        return id;
+    public Long getEmployeeId() {
+        return employeeId;
     }
 
-    public User getEmployee() {
-        return employee;
+    public void setEmployeeId(Long employeeId) {
+        this.employeeId = employeeId;
     }
 
-    public void setEmployee(User employee) {
-        this.employee = employee;
+    public Long getSupplierId() {
+        return supplierId;
     }
 
-    public Supplier getSupplier() {
-        return supplier;
-    }
-
-    public void setSupplier(Supplier supplier) {
-        this.supplier = supplier;
+    public void setSupplierId(Long supplierId) {
+        this.supplierId = supplierId;
     }
 
     public LocalDate getBillDate() {
