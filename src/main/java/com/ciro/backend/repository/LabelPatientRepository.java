@@ -14,4 +14,7 @@ public interface LabelPatientRepository extends JpaRepository<LabelPatient, Long
 
     @Query("SELECT lp FROM LabelPatient lp WHERE lp.label.id = :idLabel")
     List<LabelPatient> findLabelPatientByLabel(Long idLabel);
+
+    @Query("SELECT lp FROM LabelPatient lp WHERE lp.patient.id = :idPatient")
+    List<LabelPatient> findLabelPatientById(Long idPatient);
 }

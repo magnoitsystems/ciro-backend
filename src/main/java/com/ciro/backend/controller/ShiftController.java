@@ -4,6 +4,7 @@ import com.ciro.backend.dto.NoteDTO;
 import com.ciro.backend.dto.ShiftDTO;
 import com.ciro.backend.entity.Shift;
 import com.ciro.backend.service.ShiftService;
+import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,7 +66,7 @@ public class ShiftController {
     }
 
     @PostMapping()
-    public ResponseEntity<ShiftDTO> createShift(@RequestBody ShiftDTO shiftDTO, @RequestBody NoteDTO noteDTO) {
+    public ResponseEntity<ShiftDTO> createShift(@RequestBody ShiftDTO shiftDTO,  @Nullable @RequestBody NoteDTO noteDTO) {
         Shift newShif = shiftService.createShift(shiftDTO, noteDTO);
         if (newShif == null) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);

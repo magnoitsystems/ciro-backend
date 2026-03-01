@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
+@Data
 @Entity
 @Table(name = "current_account")
 public class CurrentAccount {
@@ -38,56 +39,4 @@ public class CurrentAccount {
 
     @Column(precision = 10, scale = 2)
     private BigDecimal balance;
-
-    public CurrencyType getCurrency() { return currency; }
-
-    public void setCurrency(CurrencyType currency) { this.currency = currency; }
-
-    public BigDecimal getBalance() { return balance; }
-
-    public void setBalance(BigDecimal balance) { this.balance = balance; }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Patient getPatient() {
-        return patient;
-    }
-
-    public void setPatient(Patient patient) {
-        this.patient = patient;
-    }
-
-    public Voucher getVoucher() {
-        return voucher;
-    }
-
-    public void setVoucher(Voucher voucher) {
-        this.voucher = voucher;
-    }
-
-    public Receipt getReceipt() {
-        return receipt;
-    }
-
-    public void setReceipt(Receipt receipt) {
-        this.receipt = receipt;
-    }
-
-    public CurrentAccountType getType() {
-        return type;
-    }
-
-    public void setType(CurrentAccountType type) {
-        this.type = type;
-    }
-
-    public Boolean getCanceled() {
-        return canceled;
-    }
-
-    public void setCanceled(Boolean canceled) {
-        this.canceled = canceled;
-    }
 }

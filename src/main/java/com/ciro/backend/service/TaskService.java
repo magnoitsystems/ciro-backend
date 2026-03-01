@@ -64,7 +64,7 @@ public class TaskService {
     }
 
     //POST
-    public Task save(TaskDTO taskDTO, @Nullable NoteDTO noteDTO) {
+    public Task save(TaskDTO taskDTO, NoteDTO noteDTO) {
         User user = userRepository.findById(taskDTO.getUser().getId()).orElseThrow( () -> new RuntimeException("Usuario no encontrado"));
         Task task = new Task();
         task.setUser(user);

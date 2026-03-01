@@ -5,6 +5,7 @@ import com.ciro.backend.dto.TaskDTO;
 import com.ciro.backend.entity.Task;
 import com.ciro.backend.enums.TaskStatus;
 import com.ciro.backend.service.TaskService;
+import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +63,7 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<TaskDTO> createTask(@RequestBody TaskDTO taskDTO, @RequestBody NoteDTO noteDTO) {
+    public ResponseEntity<TaskDTO> createTask(@RequestBody TaskDTO taskDTO, @Nullable @RequestBody NoteDTO noteDTO) {
         Task newTask = taskService.save(taskDTO, noteDTO);
         if(newTask == null){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

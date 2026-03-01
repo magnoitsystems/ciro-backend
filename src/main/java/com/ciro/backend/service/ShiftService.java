@@ -56,7 +56,7 @@ public class ShiftService {
 
             Shift savedShift = shiftRepository.save(newShift);
 
-            if(noteDTO.getDescription() != null && !noteDTO.getDescription().equals("null") && noteDTO.getShift() != null) {
+            if(noteDTO != null) {
                 noteDTO.setShift(newShift);
                 noteService.createNote(noteDTO);
             }
