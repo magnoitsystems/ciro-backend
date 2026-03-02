@@ -38,11 +38,10 @@ public class MedicalRecordService {
 
         Patient patient = patientRepository
                 .findByDni(dto.getPatient().getDni());
-//                .orElseThrow(() -> new RuntimeException("Paciente no existe"));
 
         User doctor = userRepository
                 .findById(dto.getDoctor().getId())
-                .orElseThrow(() -> new RuntimeException("Doctor no existe"));
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor no existe"));
 
         Shift shift = new Shift();
         if(dto.getShift() != null) {
@@ -128,14 +127,15 @@ public class MedicalRecordService {
 
         MedicalRecord medicalRecord = medicalRecordRepository
                 .findById(id)
-                .orElseThrow(() -> new RuntimeException("MedicalRecord no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("MedicalRecord no encontrado"));
 
         return mapToDTO(medicalRecord);
     }
 
     //By doctor id
     public List<MedicalRecordDTO> getMedicalRecordsByDoctor(Long doctorId) {
-        List<MedicalRecord> medicalRecords = medicalRecordRepository.findMedicalRecordByDoctor(doctorId);
+        User doctor = userRepository.findById(doctorId).orElseThrow(() -> new ResourceNotFoundException("Doctor " + doctorId + " no encontrado"));
+        List<MedicalRecord> medicalRecords = medicalRecordRepository.findMedicalRecordByDoctor(doctor.getId());
 
         List<MedicalRecordDTO> dtos = new ArrayList<>();
 
@@ -152,7 +152,7 @@ public class MedicalRecordService {
         List<MedicalRecordDTO> dtos = new ArrayList<>();
 
         if(medicalRecord == null){
-            throw new RuntimeException("El paciente con DNI " + dni + " no existe.");
+            throw new ResourceNotFoundException("El paciente con DNI " + dni + " no existe.");
         }
 
         for (MedicalRecord medicalRecord1 : medicalRecord) {

@@ -14,7 +14,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -148,31 +147,29 @@ public class PatientService {
     }
 
     @Transactional
-    public LabelPatient assignLabel(Long patientId, Long labelId) {
+    public void assignLabel(Long patientId, Long labelId) {
         Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el paciente con ID "+ patientId));
 
         Label label = labelRepository.findById(labelId)
-                .orElseThrow(() -> new RuntimeException("Label no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el label con ID "+ labelId));
 
-        // evitar duplicados
         LabelPatient alreadyExists = labelPatientRepository.existsByPatientIdAndLabelId(patientId, labelId);
 
         if (alreadyExists != null) {
-            throw new RuntimeException("El paciente ya tiene este label");
+            throw new DuplicateResourceException("El paciente ya tiene este label");
         }
 
         LabelPatient patientLabel = new LabelPatient();
         patientLabel.setPatient(patient);
         patientLabel.setLabel(label);
 
-        return labelPatientRepository.save(patientLabel);
+        labelPatientRepository.save(patientLabel);
     }
 
     public StatisticsDTO getPatientsAndStatistics(Long labelId) {
-
         labelRepository.findById(labelId)
-                .orElseThrow(() -> new RuntimeException("Label no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el label con ID "+ labelId));
 
         List<LabelPatient> relations =
                 labelPatientRepository.findLabelPatientByLabel(labelId);

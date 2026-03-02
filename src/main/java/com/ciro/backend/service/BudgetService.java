@@ -50,7 +50,7 @@ public class BudgetService {
 
     public BudgetDTO findById(Long id) {
         if(id >= 0){
-            Budget budget = budgetRepository.findById(id).orElse(null);
+            Budget budget = budgetRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("El reporte con el id " + id + " no existe"));
 
             if(budget != null){
                 return mapToDTO(budget);
@@ -73,7 +73,7 @@ public class BudgetService {
 
     public Budget update(BudgetDTO budgetDTO, Long id) {
 
-        Budget budget = budgetRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Presupuesto no encontrado"));
+        Budget budget = budgetRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Presupuesto con el id " + id  + " no encontrado"));
 
         if(budgetDTO.getPatient() != null) {
             Patient patient = patientRepository.findById(budgetDTO.getPatient().getId()).orElse(null);
