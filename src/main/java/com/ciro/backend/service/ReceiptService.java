@@ -26,6 +26,7 @@ public class ReceiptService {
     @Autowired private CurrentAccountRepository currentAccountRepository;
     @Autowired private PatientRepository patientRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private CurrentAccountService currentAccountService;
 
     @Transactional
     public ReceiptResponseDTO createReceipt(ReceiptCreateDTO dto) {
@@ -84,6 +85,7 @@ public class ReceiptService {
         accountEntry.setBalance(newBalance);
 
         currentAccountRepository.save(accountEntry);
+        currentAccountService.updateDebtorLabel(patient);
 
         return new ReceiptResponseDTO(
                 savedReceipt.getId(),
