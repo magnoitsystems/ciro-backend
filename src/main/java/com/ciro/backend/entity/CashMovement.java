@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
 @Entity
-@Data
 @Table(name = "cash_movements")
 public class CashMovement {
     @Id
@@ -39,4 +38,75 @@ public class CashMovement {
 
     @Column
     private String observations;
+
+    @Column(name = "doctor_id")
+    private Long doctorId;
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getDoctorId(){
+        return doctorId;
+    }
+
+    public void setDoctorId(Long doctorId) {
+        this.doctorId = doctorId;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
+    public CurrencyType getCurrencyType() {
+        return currencyType;
+    }
+
+    public void setCurrencyType(CurrencyType currencyType) {
+        this.currencyType = currencyType;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public Long getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(Long referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public LocalDateTime getMovementDate() {
+        return movementDate;
+    }
+
+    public void setMovementDate(LocalDateTime movementDate) {
+        this.movementDate = movementDate;
+    }
+
+    public CashMovementType getType() {
+        return type;
+    }
+
+    public void setType(CashMovementType type) {
+        this.type = type;
+    }
+
+    public String getObservations() {
+        return observations;
+    }
+
+    public void setObservations(String observations) {
+        this.observations = observations;
+    }
 }
