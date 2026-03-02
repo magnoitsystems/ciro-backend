@@ -21,6 +21,7 @@ public class SupplierService {
         newSupplier.setCity(supplier.getCity());
         newSupplier.setDni(supplier.getDni());
         newSupplier.setObservations(supplier.getObservations());
+        newSupplier.setFullName(supplier.getFullName());
 
         return supplierRepository.save(newSupplier);
     }
