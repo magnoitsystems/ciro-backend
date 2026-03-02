@@ -172,7 +172,7 @@ public class BillService {
             boolean yaExiste = cashMovementRepository.existsByTypeAndReferenceId(CashMovementType.EGRESO, updatedBill.getId());
 
             if (!yaExiste) {
-                cashMovementService.registrarMovimiento(
+                cashMovementService.createMovement(
                         updatedBill.getAmount(),
                         updatedBill.getCurrencyType(),
                         updatedBill.getPaymentMethod(),

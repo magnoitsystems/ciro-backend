@@ -196,7 +196,7 @@ public class PdfGenerationService {
 
     public byte[] generateCashReportPdf(List<CashMovement> movements, String reportTitle) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            Document document = new Document(PageSize.A4.rotate(), 30, 30, 30, 30); // Horizontal para más espacio
+            Document document = new Document(PageSize.A4.rotate(), 30, 30, 30, 30);
             PdfWriter.getInstance(document, baos);
             document.open();
 
@@ -208,7 +208,7 @@ public class PdfGenerationService {
                     logo.setAlignment(Element.ALIGN_CENTER);
                     document.add(logo);
                 }
-            } catch (Exception e) { }
+            } catch (Exception e) {}
 
             Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
             Paragraph title = new Paragraph(reportTitle, titleFont);
@@ -235,32 +235,36 @@ public class PdfGenerationService {
             Map<String, BigDecimal> totalPorMetodo = new TreeMap<>();
 
             for (CashMovement m : movements) {
-                table.addCell(new Phrase(m.getMovementDate().toLocalDate().toString(), rowFont));
+                String fechaStr = (m.getMovementDate() != null) ? m.getMovementDate().toLocalDate().toString() : "S/F";
+                table.addCell(new Phrase(fechaStr, rowFont));
 
-                PdfPCell typeCell = new PdfPCell(new Phrase(m.getType().name(), rowFont));
-                if (m.getType() == CashMovementType.EGRESO) typeCell.setPhrase(new Phrase("SALIDA", rowFont));
-                else typeCell.setPhrase(new Phrase("ENTRADA", rowFont));
-                table.addCell(typeCell);
+                String tipoStr = (m.getType() != null) ? (m.getType() == CashMovementType.EGRESO ? "SALIDA" : "ENTRADA") : "S/T";
+                table.addCell(new Phrase(tipoStr, rowFont));
 
-                table.addCell(new Phrase(m.getPaymentMethod().name(), rowFont));
+                String metodoStr = (m.getPaymentMethod() != null) ? m.getPaymentMethod().name() : "NO ESPECIF.";
+                table.addCell(new Phrase(metodoStr, rowFont));
+
                 table.addCell(new Phrase(m.getObservations() != null ? m.getObservations() : "-", rowFont));
-                table.addCell(new Phrase(m.getCurrencyType().name(), rowFont));
 
-                String symbol = m.getCurrencyType() == CurrencyType.DOLARES ? "U$D " : "$ ";
-                table.addCell(new Phrase(symbol + m.getAmount().toString(), rowFont));
+                String monedaStr = (m.getCurrencyType() != null) ? m.getCurrencyType().name() : "S/M";
+                table.addCell(new Phrase(monedaStr, rowFont));
 
-                CurrencyType curr = m.getCurrencyType();
-                BigDecimal amount = m.getAmount();
+                BigDecimal amount = (m.getAmount() != null) ? m.getAmount() : BigDecimal.ZERO;
+                String symbol = (m.getCurrencyType() == CurrencyType.DOLARES) ? "U$D " : "$ ";
+                table.addCell(new Phrase(symbol + amount.toString(), rowFont));
 
-                if (m.getType() == CashMovementType.INGRESO) {
-                    ingresosPorMoneda.put(curr, ingresosPorMoneda.getOrDefault(curr, BigDecimal.ZERO).add(amount));
-                } else {
-                    egresosPorMoneda.put(curr, egresosPorMoneda.getOrDefault(curr, BigDecimal.ZERO).add(amount));
+                if (m.getCurrencyType() != null && m.getType() != null) {
+                    CurrencyType curr = m.getCurrencyType();
+                    if (m.getType() == CashMovementType.INGRESO) {
+                        ingresosPorMoneda.put(curr, ingresosPorMoneda.getOrDefault(curr, BigDecimal.ZERO).add(amount));
+                    } else {
+                        egresosPorMoneda.put(curr, egresosPorMoneda.getOrDefault(curr, BigDecimal.ZERO).add(amount));
+                    }
+
+                    String metodoKey = curr.name() + " - " + metodoStr;
+                    totalPorMetodo.put(metodoKey, totalPorMetodo.getOrDefault(metodoKey, BigDecimal.ZERO)
+                            .add(m.getType() == CashMovementType.INGRESO ? amount : amount.negate()));
                 }
-
-                String metodoKey = curr.name() + " - " + m.getPaymentMethod().name();
-                totalPorMetodo.put(metodoKey, totalPorMetodo.getOrDefault(metodoKey, BigDecimal.ZERO)
-                        .add(m.getType() == CashMovementType.INGRESO ? amount : amount.negate()));
             }
 
             document.add(table);
@@ -300,7 +304,8 @@ public class PdfGenerationService {
             document.close();
             return baos.toByteArray();
         } catch (Exception e) {
-            throw new RuntimeException("Error al generar PDF de caja", e);
+            e.printStackTrace();
+            throw new RuntimeException("Error al generar PDF de caja: " + e.getMessage(), e);
         }
     }
 }

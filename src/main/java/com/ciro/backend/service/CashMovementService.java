@@ -21,15 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class CashMovementService {
 
     @Autowired
-    private final CashMovementRepository cashMovementRepository;
+    private CashMovementRepository cashMovementRepository;
     @Autowired
-    private final BillRepository billRepository;
+    private BillRepository billRepository;
     @Autowired
-    private final ReceiptRepository receiptRepository;
+    private ReceiptRepository receiptRepository;
 
 
     public void createMovement(BigDecimal amount, CurrencyType currency, PaymentMethod method,
