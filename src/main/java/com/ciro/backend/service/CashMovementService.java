@@ -32,7 +32,7 @@ public class CashMovementService {
     private final ReceiptRepository receiptRepository;
 
 
-    public void registrarMovimiento(BigDecimal amount, CurrencyType currency, PaymentMethod method,
+    public void createMovement(BigDecimal amount, CurrencyType currency, PaymentMethod method,
                                     Long referenceId, CashMovementType type, String observations) {
         CashMovement movement = new CashMovement();
         movement.setAmount(amount);
@@ -47,14 +47,14 @@ public class CashMovementService {
     }
 
     @Transactional
-    public void asignarDoctorAMovimiento(Long movementId, Long doctorId) {
+    public void assignDoctor(Long movementId, Long doctorId) {
         CashMovement movement = cashMovementRepository.findById(movementId)
                 .orElseThrow(() -> new ResourceNotFoundException("Movimiento de caja no encontrado"));
         movement.setDoctorId(doctorId);
         cashMovementRepository.save(movement);
     }
 
-    public List<CashMovement> obtenerCaja(Long doctorId, ReportPeriod period) {
+    public List<CashMovement> getCashMovements(Long doctorId, ReportPeriod period) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startDate;
         LocalDateTime endDate = now.with(LocalTime.MAX);
@@ -67,11 +67,9 @@ public class CashMovementService {
                     startDate = now.with(LocalTime.MIN);
                     break;
                 case WEEK:
-                    // Lunes de esta semana
                     startDate = now.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY)).with(LocalTime.MIN);
                     break;
                 case MONTH:
-                    // Primero de este mes
                     startDate = now.with(TemporalAdjusters.firstDayOfMonth()).with(LocalTime.MIN);
                     break;
                 default:

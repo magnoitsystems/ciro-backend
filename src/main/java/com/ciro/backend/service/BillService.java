@@ -82,7 +82,7 @@ public class BillService {
         Bill savedBill = billRepository.save(bill);
 
         if (savedBill.getStatus() == BillStatus.PAGADO && savedBill.getFrom() == OriginType.CAJA) {
-            cashMovementService.registrarMovimiento(
+            cashMovementService.createMovement(
                     savedBill.getAmount(),
                     savedBill.getCurrencyType(),
                     savedBill.getPaymentMethod(),

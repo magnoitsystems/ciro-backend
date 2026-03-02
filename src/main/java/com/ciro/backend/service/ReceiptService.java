@@ -90,7 +90,7 @@ public class ReceiptService {
         currentAccountRepository.save(accountEntry);
         currentAccountService.updateDebtorLabel(patient);
 
-        cashMovementService.registrarMovimiento(
+        cashMovementService.createMovement(
                 savedReceipt.getAmount(),
                 savedReceipt.getCurrencyType(),
                 savedReceipt.getPaymentMethod(),

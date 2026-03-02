@@ -3,6 +3,9 @@ package com.ciro.backend.service;
 import com.ciro.backend.dto.BillResponseDTO;
 import com.ciro.backend.dto.ReceiptResponseDTO;
 import com.ciro.backend.entity.Bill;
+import com.ciro.backend.entity.CashMovement;
+import com.ciro.backend.enums.CashMovementType;
+import com.ciro.backend.enums.CurrencyType;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
@@ -12,7 +15,10 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Service
 public class PdfGenerationService {
@@ -172,7 +178,7 @@ public class PdfGenerationService {
             summaryTable.addCell(new PdfPCell(new Phrase("$" + totalDoctor, rowFont)));
 
             PdfPCell totalGeneralCell = new PdfPCell(new Phrase("TOTAL GENERAL:", headFont));
-            totalGeneralCell.setBackgroundColor(new java.awt.Color(230, 230, 230)); // Gris clarito
+            totalGeneralCell.setBackgroundColor(new java.awt.Color(230, 230, 230));
             summaryTable.addCell(totalGeneralCell);
 
             PdfPCell totalAmountCell = new PdfPCell(new Phrase("$" + totalGeneral, headFont));
@@ -185,6 +191,116 @@ public class PdfGenerationService {
 
         } catch (Exception e) {
             throw new RuntimeException("Error al generar el PDF del reporte", e);
+        }
+    }
+
+    public byte[] generateCashReportPdf(List<CashMovement> movements, String reportTitle) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            Document document = new Document(PageSize.A4.rotate(), 30, 30, 30, 30); // Horizontal para más espacio
+            PdfWriter.getInstance(document, baos);
+            document.open();
+
+            try {
+                URL imageUrl = getClass().getResource("/images/logo.png");
+                if (imageUrl != null) {
+                    Image logo = Image.getInstance(imageUrl);
+                    logo.scaleToFit(100, 100);
+                    logo.setAlignment(Element.ALIGN_CENTER);
+                    document.add(logo);
+                }
+            } catch (Exception e) { }
+
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
+            Paragraph title = new Paragraph(reportTitle, titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(20);
+            document.add(title);
+
+            PdfPTable table = new PdfPTable(6);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[]{1.5f, 1f, 1.5f, 3f, 1f, 1.5f});
+
+            Font headFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
+            Font rowFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
+
+            String[] headers = {"Fecha", "Tipo", "Método", "Observaciones", "Moneda", "Monto"};
+            for (String h : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(h, headFont));
+                cell.setBackgroundColor(new java.awt.Color(240, 240, 240));
+                table.addCell(cell);
+            }
+
+            Map<CurrencyType, BigDecimal> ingresosPorMoneda = new HashMap<>();
+            Map<CurrencyType, BigDecimal> egresosPorMoneda = new HashMap<>();
+            Map<String, BigDecimal> totalPorMetodo = new TreeMap<>();
+
+            for (CashMovement m : movements) {
+                table.addCell(new Phrase(m.getMovementDate().toLocalDate().toString(), rowFont));
+
+                PdfPCell typeCell = new PdfPCell(new Phrase(m.getType().name(), rowFont));
+                if (m.getType() == CashMovementType.EGRESO) typeCell.setPhrase(new Phrase("SALIDA", rowFont));
+                else typeCell.setPhrase(new Phrase("ENTRADA", rowFont));
+                table.addCell(typeCell);
+
+                table.addCell(new Phrase(m.getPaymentMethod().name(), rowFont));
+                table.addCell(new Phrase(m.getObservations() != null ? m.getObservations() : "-", rowFont));
+                table.addCell(new Phrase(m.getCurrencyType().name(), rowFont));
+
+                String symbol = m.getCurrencyType() == CurrencyType.DOLARES ? "U$D " : "$ ";
+                table.addCell(new Phrase(symbol + m.getAmount().toString(), rowFont));
+
+                CurrencyType curr = m.getCurrencyType();
+                BigDecimal amount = m.getAmount();
+
+                if (m.getType() == CashMovementType.INGRESO) {
+                    ingresosPorMoneda.put(curr, ingresosPorMoneda.getOrDefault(curr, BigDecimal.ZERO).add(amount));
+                } else {
+                    egresosPorMoneda.put(curr, egresosPorMoneda.getOrDefault(curr, BigDecimal.ZERO).add(amount));
+                }
+
+                String metodoKey = curr.name() + " - " + m.getPaymentMethod().name();
+                totalPorMetodo.put(metodoKey, totalPorMetodo.getOrDefault(metodoKey, BigDecimal.ZERO)
+                        .add(m.getType() == CashMovementType.INGRESO ? amount : amount.negate()));
+            }
+
+            document.add(table);
+            document.add(new Paragraph("\n"));
+
+            Paragraph resTitle = new Paragraph("RESUMEN DE SALDOS", headFont);
+            resTitle.setSpacingAfter(10);
+            document.add(resTitle);
+
+            PdfPTable summaryTable = new PdfPTable(4);
+            summaryTable.setWidthPercentage(100);
+            summaryTable.addCell(new PdfPCell(new Phrase("Moneda", headFont)));
+            summaryTable.addCell(new PdfPCell(new Phrase("Total Entradas (+)", headFont)));
+            summaryTable.addCell(new PdfPCell(new Phrase("Total Salidas (-)", headFont)));
+            summaryTable.addCell(new PdfPCell(new Phrase("SALDO FINAL", headFont)));
+
+            for (CurrencyType ct : CurrencyType.values()) {
+                BigDecimal in = ingresosPorMoneda.getOrDefault(ct, BigDecimal.ZERO);
+                BigDecimal out = egresosPorMoneda.getOrDefault(ct, BigDecimal.ZERO);
+                if (in.compareTo(BigDecimal.ZERO) == 0 && out.compareTo(BigDecimal.ZERO) == 0) continue;
+
+                summaryTable.addCell(new Phrase(ct.name(), rowFont));
+                summaryTable.addCell(new Phrase(in.toString(), rowFont));
+                summaryTable.addCell(new Phrase(out.toString(), rowFont));
+
+                PdfPCell totalCell = new PdfPCell(new Phrase(in.subtract(out).toString(), headFont));
+                totalCell.setBackgroundColor(new java.awt.Color(235, 235, 235));
+                summaryTable.addCell(totalCell);
+            }
+            document.add(summaryTable);
+
+            document.add(new Paragraph("\nDESGLOSE POR MÉTODO DE PAGO:", rowFont));
+            for (Map.Entry<String, BigDecimal> entry : totalPorMetodo.entrySet()) {
+                document.add(new Paragraph("• " + entry.getKey() + ": " + entry.getValue(), rowFont));
+            }
+
+            document.close();
+            return baos.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Error al generar PDF de caja", e);
         }
     }
 }
