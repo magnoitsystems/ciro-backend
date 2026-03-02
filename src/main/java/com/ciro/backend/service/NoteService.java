@@ -4,10 +4,10 @@ import com.ciro.backend.dto.NoteDTO;
 import com.ciro.backend.entity.Note;
 import com.ciro.backend.entity.Shift;
 import com.ciro.backend.entity.Task;
+import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.NoteRepository;
 import com.ciro.backend.repository.ShiftRepository;
 import com.ciro.backend.repository.TaskRepository;
-import org.aspectj.weaver.ast.Not;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +36,7 @@ public class NoteService {
 
     public NoteDTO getNoteById(Long noteId) {
         if(noteId >= 0){
-            Note note = noteRepository.findById(noteId).orElseThrow(()->new RuntimeException("Note no encontrado"));
+            Note note = noteRepository.findById(noteId).orElseThrow(()->new ResourceNotFoundException("Note " + noteId +  " no encontrado"));
             return matToDTO(note);
         }
         return null;
@@ -45,7 +45,7 @@ public class NoteService {
     public Note createNote(NoteDTO noteDTO) {
         Note note = new Note();
 
-        Task task = taskRepository.findById(noteDTO.getTask().getId()).orElseThrow(()->new RuntimeException("Task no encontrado"));
+        Task task = taskRepository.findById(noteDTO.getTask().getId()).orElseThrow(()->new ResourceNotFoundException("Note " + noteDTO.getTask().getId() +  " no encontrado"));
 
         assert task != null;
 
@@ -59,14 +59,14 @@ public class NoteService {
 
     public Note updateNote(Long noteId, NoteDTO noteDTO) {
         if(noteId >= 0){
-            Note note = noteRepository.findById(noteId).orElseThrow(()->new RuntimeException("Note no encontrado"));
+            Note note = noteRepository.findById(noteId).orElseThrow(()->new ResourceNotFoundException("Note " + noteId +  " no encontrado"));
             if(noteDTO.getTask() != null){
-                Task task = taskRepository.findById(noteDTO.getTask().getId()).orElseThrow(()->new RuntimeException("Task no encontrado"));
+                Task task = taskRepository.findById(noteDTO.getTask().getId()).orElseThrow(()->new ResourceNotFoundException("Task " + noteDTO.getTask().getId() +  " no encontrado"));
                 note.setTask(task);
             }
 
             if(noteDTO.getShift() != null){
-                Shift shift = shiftRepository.findById(noteDTO.getShift().getId()).orElseThrow(()->new RuntimeException("Shift no encontrado"));
+                Shift shift = shiftRepository.findById(noteDTO.getShift().getId()).orElseThrow(()->new ResourceNotFoundException("Shift " + noteDTO.getShift().getId() +  " no encontrado"));
                 note.setShift(shift);
             }
 

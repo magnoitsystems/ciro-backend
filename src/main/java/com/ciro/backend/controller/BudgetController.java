@@ -21,28 +21,20 @@ public class BudgetController {
     public ResponseEntity<List<BudgetDTO>> findAll(){
         List<BudgetDTO> budget = budgetService.findAll();
 
-        if(budget.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
         return new ResponseEntity<>(budget, HttpStatus.OK);
     }
 
     @GetMapping("{id}")
     public ResponseEntity<BudgetDTO> findById(@PathVariable Long id) {
         BudgetDTO budgetDTO = budgetService.findById(id);
-        if(budgetDTO == null){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+
         return new ResponseEntity<>(budgetDTO, HttpStatus.OK);
     }
 
     @GetMapping("/patient/{id}")
     public ResponseEntity<List<BudgetDTO>> findByPatientId(@PathVariable Long id){
         List<BudgetDTO> budget = budgetService.findByPatientId(id);
-        if(budget.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+
         return new ResponseEntity<>(budget, HttpStatus.OK);
     }
 
@@ -50,20 +42,12 @@ public class BudgetController {
     public ResponseEntity<Budget> addBudget(@RequestBody BudgetDTO budgetDTO){
         Budget newBudget = budgetService.save(budgetDTO);
 
-        if(newBudget == null){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
         return new ResponseEntity<>(newBudget, HttpStatus.OK);
     }
 
     @PutMapping("{id}")
     public ResponseEntity<BudgetDTO> updateBudget(@RequestBody BudgetDTO budgetDTO, @PathVariable Long id){
-        Budget newBudget = budgetService.update(budgetDTO, id);
-
-        if(newBudget == null){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        budgetService.update(budgetDTO, id);
 
         return new ResponseEntity<>(budgetDTO, HttpStatus.OK);
     }
@@ -71,9 +55,7 @@ public class BudgetController {
     @DeleteMapping("{id}")
     public ResponseEntity<BudgetDTO> deleteBudget(@PathVariable Long id){
         BudgetDTO budgetDTO = budgetService.findById(id);
-        if(budgetDTO == null){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+
         budgetService.deleteById(id);
         return new ResponseEntity<>(budgetDTO, HttpStatus.OK);
     }

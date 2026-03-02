@@ -9,10 +9,8 @@ import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -25,9 +23,6 @@ public class TaskController {
     public ResponseEntity<List<TaskDTO>> getTasks() {
         List<TaskDTO> taskDTOS = taskService.findAll();
 
-        if(taskDTOS.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
         return new ResponseEntity<>(taskDTOS, HttpStatus.OK);
     }
 
@@ -35,18 +30,13 @@ public class TaskController {
     public ResponseEntity<TaskDTO> getTask(@PathVariable Long id) {
         TaskDTO taskDTOS = taskService.findById(id);
 
-        if(taskDTOS == null){
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
         return new ResponseEntity<>(taskDTOS, HttpStatus.OK);
     }
 
     @GetMapping("/user/{id}")
     public ResponseEntity<List<TaskDTO>> getTaskByUserId(@PathVariable Long id) {
         List<TaskDTO> taskDTOS = taskService.findAllByUser(id);
-        if(taskDTOS.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+
         return new ResponseEntity<>(taskDTOS, HttpStatus.OK);
     }
 
@@ -54,10 +44,6 @@ public class TaskController {
     public ResponseEntity<List<TaskDTO>> getTaskByStatus(@PathVariable TaskStatus status) {
 
         List<TaskDTO> taskDTOS = taskService.findTasksByStatus(status);
-
-        if(taskDTOS.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
 
         return new ResponseEntity<>(taskDTOS, HttpStatus.OK);
     }
@@ -74,18 +60,14 @@ public class TaskController {
     @PutMapping("{id}")
     public ResponseEntity<TaskDTO> updateTask(@PathVariable Long id, @RequestBody TaskDTO taskDTO) {
         Task newTask = taskService.update(taskDTO, id);
-        if(newTask == null){
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+
         return new ResponseEntity<>(taskDTO, HttpStatus.OK);
     }
 
     @DeleteMapping("{id}")
     public ResponseEntity<TaskDTO> deleteTask(@PathVariable Long id) {
         TaskDTO taskDTO = taskService.findById(id);
-        if(taskDTO == null){
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+
         taskService.delete(id);
         return new ResponseEntity<>(taskDTO, HttpStatus.OK);
     }

@@ -20,20 +20,12 @@ public class LabelController {
     public ResponseEntity<List<Label>> findAll() {
         List<Label> labels = labelService.findAll();
 
-        if(labels == null){
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(labels);
     }
 
     @GetMapping("{id}")
     public ResponseEntity<Label> findById(@PathVariable Long id) {
         Label label = labelService.findById(id);
-
-        if(label == null){
-            return ResponseEntity.notFound().build();
-        }
 
         return ResponseEntity.ok(label);
     }
@@ -42,10 +34,6 @@ public class LabelController {
     public ResponseEntity<Label> create(@RequestBody Label label) {
         Label labelSaved = labelService.save(label);
 
-        if(labelSaved == null){
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(labelSaved);
     }
 
@@ -53,20 +41,12 @@ public class LabelController {
     public ResponseEntity<Label> update(@PathVariable Long id, @RequestBody Label label) {
         Label labelSaved = labelService.update(label, id);
 
-        if(labelSaved == null){
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(labelSaved);
     }
 
     @DeleteMapping("{id}")
     public ResponseEntity<Label> delete(@PathVariable Long id) {
         Label label = labelService.findById(id);
-
-        if(label == null){
-            return ResponseEntity.notFound().build();
-        }
 
         labelService.deleteById(id);
         return ResponseEntity.ok(label);

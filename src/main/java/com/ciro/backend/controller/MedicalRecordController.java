@@ -6,7 +6,6 @@ import com.ciro.backend.service.MedicalRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,9 +20,6 @@ public class MedicalRecordController {
     public ResponseEntity<List<MedicalRecordDTO>> getMedicalRecords() {
         List<MedicalRecordDTO> medicalRecordDTOS = medicalRecordService.getAllMedicalRecords();
 
-        if(medicalRecordDTOS.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
         return new ResponseEntity<>(medicalRecordDTOS, HttpStatus.OK);
     }
 
@@ -31,27 +27,20 @@ public class MedicalRecordController {
     public ResponseEntity<MedicalRecordDTO> getMedicalRecordById(@PathVariable Long id) {
         MedicalRecordDTO medicalRecordDTO = medicalRecordService.getMedicalRecordById(id);
 
-        if(medicalRecordDTO == null) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
         return new ResponseEntity<>(medicalRecordDTO, HttpStatus.OK);
     }
 
     @GetMapping("/doctor/{id}")
     public ResponseEntity<List<MedicalRecordDTO>> getMedicalRecordByDoctorId(@PathVariable Long id) {
         List<MedicalRecordDTO> medicalRecordDTO = medicalRecordService.getMedicalRecordsByDoctor(id);
-        if(medicalRecordDTO.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+
         return new ResponseEntity<>(medicalRecordDTO, HttpStatus.OK);
     }
 
     @GetMapping("/patient/{dni}")
     public ResponseEntity<List<MedicalRecordDTO>> getMedicalRecordsByDniPatient(@PathVariable String dni) {
         List<MedicalRecordDTO> medicalRecordDTO = medicalRecordService.getMedicalRecordByDNIPatient(dni);
-        if(medicalRecordDTO.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+
         return new ResponseEntity<>(medicalRecordDTO, HttpStatus.OK);
     }
 
@@ -64,15 +53,15 @@ public class MedicalRecordController {
     @PutMapping("/{id}")
     public ResponseEntity<MedicalRecordDTO> updateMedicalRecord(@RequestBody MedicalRecordDTO medicalRecordDTO, @PathVariable Long id) {
         MedicalRecordDTO medicalRecordUpdate = medicalRecordService.updateMedicalRecord(medicalRecordDTO, id);
-        if(medicalRecordUpdate == null) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+
         return new ResponseEntity<>(medicalRecordUpdate, HttpStatus.OK);
     }
 
     @DeleteMapping("{id}")
     public ResponseEntity<MedicalRecordDTO> deleteMedicalRecord(@PathVariable Long id) {
+        MedicalRecordDTO medicalRecordDTO = medicalRecordService.getMedicalRecordById(id);
         medicalRecordService.deleteMedicalRecord(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+        return new ResponseEntity<>(medicalRecordDTO, HttpStatus.OK);
     }
 }

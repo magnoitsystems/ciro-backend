@@ -23,7 +23,7 @@ public class LabelPatientService {
 
     public Optional<LabelPatient> findById(Long id){
         if(id == null){
-            return null;
+            return Optional.empty();
         }
         return labelPatientRepository.findById(id);
     }
@@ -33,9 +33,7 @@ public class LabelPatientService {
             return null;
         }
 
-        List<LabelPatient> labelPatients = labelPatientRepository.findLabelPatientById(patientId);
-
-        return labelPatients;
+        return labelPatientRepository.findLabelPatientById(patientId);
     }
 
     public List<LabelPatient> findByLabelId(Long labelId){

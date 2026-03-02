@@ -4,6 +4,7 @@ import com.ciro.backend.dto.PracticeDTO;
 import com.ciro.backend.entity.Patient;
 import com.ciro.backend.entity.Practice;
 import com.ciro.backend.entity.User;
+import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.PatientRepository;
 import com.ciro.backend.repository.PracticeRepository;
 import com.ciro.backend.repository.UserRepository;
@@ -25,8 +26,8 @@ public class PracticeService {
     public Practice createPractice(PracticeDTO practiceDTO) {
         Practice practice = new Practice();
 
-        User doctor = userRepository.findById(practiceDTO.getDoctor().getId()).orElseThrow(() -> new RuntimeException("Doctor not found"));
-        Patient patient = patientRepository.findById(practiceDTO.getPatient().getId()).orElseThrow(() -> new RuntimeException("Patient not found"));
+        User doctor = userRepository.findById(practiceDTO.getDoctor().getId()).orElseThrow(() -> new ResourceNotFoundException("El doctor " + practiceDTO.getDoctor().getId() + " no encontrado"));
+        Patient patient = patientRepository.findById(practiceDTO.getPatient().getId()).orElseThrow(() -> new ResourceNotFoundException("El paciente " + practiceDTO.getPatient().getId() + " no encontrado"));
 
         practice.setPracticeDate(practiceDTO.getPracticeDate());
         practice.setAmount(practiceDTO.getAmount());
@@ -40,7 +41,7 @@ public class PracticeService {
     }
 
     public PracticeDTO getPractice(Long id) {
-            Practice practice = practiceRepository.findById(id).orElseThrow(() -> new RuntimeException("Practice not found"));
+            Practice practice = practiceRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("La práctica " + id + " no encontrado"));
             return mapToDTO(practice);
     }
 
@@ -57,7 +58,7 @@ public class PracticeService {
 
     public Practice updatePractice(PracticeDTO practiceDTO, Long id) {
         if(id >= 0){
-            Practice practice = practiceRepository.findById(id).orElseThrow(() -> new RuntimeException("Practice not found"));
+            Practice practice = practiceRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("La práctica " + id + " no encontrado"));
             if(practiceDTO.getPracticeDate() != null) {
                 practice.setPracticeDate(practiceDTO.getPracticeDate());
             }
@@ -67,12 +68,12 @@ public class PracticeService {
             }
 
             if(practiceDTO.getDoctor() != null) {
-                User doctor = userRepository.findById(practiceDTO.getDoctor().getId()).orElse(null);
+                User doctor = userRepository.findById(practiceDTO.getDoctor().getId()).orElseThrow(() -> new ResourceNotFoundException("El doctor " + practiceDTO.getDoctor().getId() + " no encontrado"));
                 practice.setDoctor(doctor);
             }
 
             if(practiceDTO.getPatient() != null) {
-                Patient patient = patientRepository.findById(practiceDTO.getPatient().getId()).orElse(null);
+                Patient patient = patientRepository.findById(practiceDTO.getPatient().getId()).orElseThrow(() -> new ResourceNotFoundException("El paciente " + practiceDTO.getPatient().getId() + " no encontrado"));
                 practice.setPatient(patient);
             }
 
@@ -100,7 +101,7 @@ public class PracticeService {
     }
 
     public List<PracticeDTO> getPracticesByDoctor(Long id) {
-        User doctor = userRepository.findById(id).orElseThrow(() -> new RuntimeException("Doctor not found"));
+        User doctor = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("El doctor " + id + " no encontrado"));
         List<Practice> practicesDTOs = practiceRepository.findPracticeByDoctorId(doctor.getId());
         List<PracticeDTO> practiceDTOList = new ArrayList<>();
 
@@ -112,7 +113,7 @@ public class PracticeService {
     }
 
     public List<PracticeDTO> getPracticesByPatient(Long id) {
-        Patient patient = patientRepository.findById(id).orElseThrow(() -> new RuntimeException("Doctor not found"));
+        Patient patient = patientRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("El doctor " + id + " no encontrado"));
         List<Practice> practicesDTOs = practiceRepository.findPracticeByPatientId(patient.getId());
         List<PracticeDTO> practiceDTOList = new ArrayList<>();
 

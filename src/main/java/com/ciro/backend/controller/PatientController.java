@@ -4,7 +4,6 @@ import com.ciro.backend.dto.*;
 import com.ciro.backend.entity.LabelPatient;
 import com.ciro.backend.entity.Patient;
 import com.ciro.backend.service.PatientService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,11 +58,9 @@ public class PatientController {
     @DeleteMapping("{id}")
     public ResponseEntity<PatientDTO> deletePatient(@PathVariable Long id) {
         PatientDTO patientDTO = patientService.getPatientById(id);
-        if(patientDTO != null){
-            patientService.deletePatient(id);
-            return ResponseEntity.ok(patientDTO);
-        }
-        return ResponseEntity.notFound().build();
+        patientService.deletePatient(id);
+
+        return ResponseEntity.ok(patientDTO);
     }
 
     @PostMapping("/{patientId}/labels/{labelId}")
@@ -71,11 +68,7 @@ public class PatientController {
             @PathVariable Long patientId,
             @PathVariable Long labelId) {
 
-        LabelPatient labelPatient = patientService.assignLabel(patientId, labelId);
-
-        if(labelPatient == null){
-            return ResponseEntity.notFound().build();
-        }
+        patientService.assignLabel(patientId, labelId);
 
         return ResponseEntity.ok().build();
     }
@@ -83,10 +76,6 @@ public class PatientController {
     @GetMapping("/statistics/{label}")
     public ResponseEntity<StatisticsDTO> getStatistics(@PathVariable Long label) {
         StatisticsDTO statisticsDTO = patientService.getPatientsAndStatistics(label);
-
-        if(statisticsDTO == null){
-            return ResponseEntity.notFound().build();
-        }
 
         return ResponseEntity.ok(statisticsDTO);
     }

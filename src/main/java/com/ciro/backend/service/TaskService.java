@@ -5,9 +5,9 @@ import com.ciro.backend.dto.TaskDTO;
 import com.ciro.backend.entity.Task;
 import com.ciro.backend.entity.User;
 import com.ciro.backend.enums.TaskStatus;
+import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.TaskRepository;
 import com.ciro.backend.repository.UserRepository;
-import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +36,7 @@ public class TaskService {
     //GET BY ID
     public TaskDTO findById(Long id) {
         if(id >= 0){
-            Task task = taskRepository.findById(id).orElseThrow( () -> new RuntimeException("Tarea no encontrada"));
+            Task task = taskRepository.findById(id).orElseThrow( () -> new ResourceNotFoundException("La tarea " + id + " no encontrada"));
             return mapToDTO(task);
         }
         return null;
@@ -65,7 +65,7 @@ public class TaskService {
 
     //POST
     public Task save(TaskDTO taskDTO, NoteDTO noteDTO) {
-        User user = userRepository.findById(taskDTO.getUser().getId()).orElseThrow( () -> new RuntimeException("Usuario no encontrado"));
+        User user = userRepository.findById(taskDTO.getUser().getId()).orElseThrow( () -> new ResourceNotFoundException("El usuario " + taskDTO.getUser().getId() + " no encontrado"));
         Task task = new Task();
         task.setUser(user);
         task.setDescription(taskDTO.getDescription());
@@ -90,7 +90,7 @@ public class TaskService {
     public Task update(TaskDTO taskDTO, Long id) {
         if(id >= 0){
 
-            Task task = taskRepository.findById(id).orElseThrow( () -> new RuntimeException("Task no encontrado"));
+            Task task = taskRepository.findById(id).orElseThrow( () -> new ResourceNotFoundException("La tarea " + id + " no encontrada"));
             if(taskDTO.getDescription() != null){
                 task.setDescription(taskDTO.getDescription());
             }
@@ -107,7 +107,7 @@ public class TaskService {
                 task.setStatus(taskDTO.getStatus());
             }
             if(taskDTO.getUser() != null) {
-                User user = userRepository.findById(taskDTO.getUser().getId()).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                User user = userRepository.findById(taskDTO.getUser().getId()).orElseThrow(() -> new ResourceNotFoundException("El usuario " + taskDTO.getUser().getId() + " no encontrado"));
                 task.setUser(user);
             }
 

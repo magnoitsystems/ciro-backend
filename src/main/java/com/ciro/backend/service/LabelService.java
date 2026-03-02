@@ -1,6 +1,7 @@
 package com.ciro.backend.service;
 
 import com.ciro.backend.entity.Label;
+import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.LabelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ public class LabelService {
 
     public Label findById(Long id) {
         if(id >= 0){
-            return labelRepository.findById(id).orElse(null);
+            return labelRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Label " + id + " no encontrado"));
         }
         return null;
     }
@@ -32,7 +33,7 @@ public class LabelService {
     }
 
     public Label update(Label label, Long id) {
-        Label label1 = findById(id);
+        Label label1 = labelRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Label " + id + " no encontrado"));
 
         if(label.getLabel() != null){
             label1.setLabel(label.getLabel());
