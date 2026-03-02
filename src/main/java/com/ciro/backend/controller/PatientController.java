@@ -1,9 +1,6 @@
 package com.ciro.backend.controller;
 
-import com.ciro.backend.dto.PatientDTO;
-import com.ciro.backend.dto.PatientUpdateDTO;
-import com.ciro.backend.dto.PracticeDTO;
-import com.ciro.backend.dto.StatisticsDTO;
+import com.ciro.backend.dto.*;
 import com.ciro.backend.entity.LabelPatient;
 import com.ciro.backend.entity.Patient;
 import com.ciro.backend.service.PatientService;
@@ -92,5 +89,11 @@ public class PatientController {
         }
 
         return ResponseEntity.ok(statisticsDTO);
+    }
+
+    @GetMapping("/debtors")
+    public ResponseEntity<List<PatientDebtorDTO>> getDebtorPatients() {
+        List<PatientDebtorDTO> debtors = patientService.getDebtorPatients();
+        return ResponseEntity.ok(debtors);
     }
 }

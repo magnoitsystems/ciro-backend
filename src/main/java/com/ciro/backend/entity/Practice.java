@@ -3,7 +3,6 @@ package com.ciro.backend.entity;
 import com.ciro.backend.enums.SurgeryType;
 import com.ciro.backend.enums.ImplantType;
 import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDate;
 import java.math.BigDecimal;
 
