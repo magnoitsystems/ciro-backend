@@ -3,6 +3,7 @@ package com.ciro.backend.service;
 import com.ciro.backend.dto.ReceiptCreateDTO;
 import com.ciro.backend.dto.ReceiptResponseDTO;
 import com.ciro.backend.entity.*;
+import com.ciro.backend.enums.CashMovementType;
 import com.ciro.backend.enums.CurrencyType;
 import com.ciro.backend.enums.CurrentAccountType;
 import com.ciro.backend.exception.BadRequestException;
@@ -27,6 +28,7 @@ public class ReceiptService {
     @Autowired private PatientRepository patientRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private CurrentAccountService currentAccountService;
+    @Autowired private CashMovementService cashMovementService;
 
     @Transactional
     public ReceiptResponseDTO createReceipt(ReceiptCreateDTO dto) {
@@ -65,6 +67,7 @@ public class ReceiptService {
         receipt.setConvertedAmount(convertedAmount);
         receipt.setPatient(patient);
         receipt.setUser(user);
+        receipt.setPaymentMethod(dto.getPaymentMethod());
 
         Receipt savedReceipt = receiptRepository.save(receipt);
 
@@ -86,6 +89,15 @@ public class ReceiptService {
 
         currentAccountRepository.save(accountEntry);
         currentAccountService.updateDebtorLabel(patient);
+
+        cashMovementService.registrarMovimiento(
+                savedReceipt.getAmount(),
+                savedReceipt.getCurrencyType(),
+                savedReceipt.getPaymentMethod(),
+                savedReceipt.getId(),
+                CashMovementType.INGRESO,
+                "Ingreso por recibo de paciente: " + patient.getFullName()
+        );
 
         return new ReceiptResponseDTO(
                 savedReceipt.getId(),

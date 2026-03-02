@@ -1,6 +1,7 @@
 package com.ciro.backend.dto;
 
 import com.ciro.backend.enums.CurrencyType;
+import com.ciro.backend.enums.PaymentMethod;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,8 +15,15 @@ public class ReceiptCreateDTO {
     private Long patientId;
     private Long userId;
     private BigDecimal exchangeRate;
+    private PaymentMethod paymentMethod;
 
     // Getter y Setter
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
     public BigDecimal getExchangeRate() { return exchangeRate; }
     public void setExchangeRate(BigDecimal exchangeRate) { this.exchangeRate = exchangeRate; }
 

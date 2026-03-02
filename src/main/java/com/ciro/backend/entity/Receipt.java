@@ -1,6 +1,7 @@
 package com.ciro.backend.entity;
 
 import com.ciro.backend.enums.CurrencyType;
+import com.ciro.backend.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -39,6 +40,18 @@ public class Receipt {
 
     @Column(name = "converted_amount", precision = 10, scale = 2)
     private BigDecimal convertedAmount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method")
+    private PaymentMethod paymentMethod;
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
 
     public Long getId() {
         return id;
