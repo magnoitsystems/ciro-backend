@@ -5,6 +5,7 @@ import com.ciro.backend.dto.LoginRequestDTO;
 import com.ciro.backend.entity.User;
 import com.ciro.backend.exception.BadRequestException;
 import com.ciro.backend.exception.ResourceNotFoundException;
+import com.ciro.backend.exception.UnauthorizedException;
 import com.ciro.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,7 +28,7 @@ public class AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getHashedPassword())) {
-            throw new BadRequestException("Credenciales inválidas");
+            throw new UnauthorizedException("Usuario o contraseña incorrectos");
         }
 
         String accessToken = jwtService.generateAccessToken(user);
