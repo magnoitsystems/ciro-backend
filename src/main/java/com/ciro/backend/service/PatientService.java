@@ -6,10 +6,7 @@ import com.ciro.backend.enums.TaskPriority;
 import com.ciro.backend.enums.TaskStatus;
 import com.ciro.backend.exception.DuplicateResourceException;
 import com.ciro.backend.exception.ResourceNotFoundException;
-import com.ciro.backend.repository.LabelPatientRepository;
-import com.ciro.backend.repository.LabelRepository;
-import com.ciro.backend.repository.PatientRepository;
-import com.ciro.backend.repository.UserRepository;
+import com.ciro.backend.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,8 +25,6 @@ public class PatientService {
     private LabelRepository labelRepository;
     @Autowired
     private LabelPatientRepository labelPatientRepository;
-    @Autowired
-    private PracticeService practiceService;
     @Autowired
     private TaskService taskService;
 

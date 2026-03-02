@@ -24,6 +24,7 @@ public class VoucherService {
     @Autowired private CurrentAccountRepository currentAccountRepository;
     @Autowired private PatientRepository patientRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private CurrentAccountService currentAccountService;
 
     @Transactional
     public VoucherResponseDTO createVoucher(VoucherCreateDTO dto) {
@@ -80,6 +81,7 @@ public class VoucherService {
         accountEntry.setBalance(newBalance);
 
         currentAccountRepository.save(accountEntry);
+        currentAccountService.updateDebtorLabel(patient);
 
         return new VoucherResponseDTO(
                 savedVoucher.getId(),

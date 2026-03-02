@@ -19,6 +19,8 @@ public class CurrentAccountService {
     @Autowired private CurrentAccountRepository currentAccountRepository;
     @Autowired private PatientRepository patientRepository;
     @Autowired private VoucherDetailRepository voucherDetailRepository;
+    @Autowired private LabelRepository labelRepository;
+    @Autowired private LabelPatientRepository labelPatientRepository;
 
     public CurrentAccountResponseDTO getPatientCurrentAccount(Long patientId, CurrentAccountType type) {
 
@@ -89,5 +91,39 @@ public class CurrentAccountService {
 
         response.setMovements(movements);
         return response;
+    }
+
+    public void updateDebtorLabel(Patient patient) {
+        BigDecimal pesosBalance = currentAccountRepository
+                .findTopByPatientIdAndCurrencyOrderByIdDesc(patient.getId(), CurrencyType.PESOS)
+                .map(CurrentAccount::getBalance)
+                .orElse(BigDecimal.ZERO);
+
+        BigDecimal dolaresBalance = currentAccountRepository
+                .findTopByPatientIdAndCurrencyOrderByIdDesc(patient.getId(), CurrencyType.DOLARES)
+                .map(CurrentAccount::getBalance)
+                .orElse(BigDecimal.ZERO);
+
+        boolean hasDebt = pesosBalance.compareTo(BigDecimal.ZERO) > 0 ||
+                dolaresBalance.compareTo(BigDecimal.ZERO) > 0;
+
+        Label debtorLabel = labelRepository.findByLabel("Deudor")
+                .orElseGet(() -> {
+                    Label newLabel = new Label();
+                    newLabel.setLabel("Deudor");
+                    return labelRepository.save(newLabel);
+                });
+
+        LabelPatient alreadyHasLabel = labelPatientRepository.existsByPatientIdAndLabelId(patient.getId(), debtorLabel.getId());
+
+        if (hasDebt && alreadyHasLabel == null) {
+            LabelPatient newLabelPatient = new LabelPatient();
+            newLabelPatient.setPatient(patient);
+            newLabelPatient.setLabel(debtorLabel);
+            labelPatientRepository.save(newLabelPatient);
+        }
+        else if (!hasDebt && alreadyHasLabel != null) {
+            labelPatientRepository.deleteByPatientAndLabel(patient, debtorLabel);
+        }
     }
 }

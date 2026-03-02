@@ -5,13 +5,11 @@ import com.ciro.backend.dto.BillResponseDTO;
 import com.ciro.backend.entity.Bill;
 import com.ciro.backend.entity.Supplier;
 import com.ciro.backend.entity.User;
-import com.ciro.backend.enums.BillStatus;
-import com.ciro.backend.enums.BillType;
-import com.ciro.backend.enums.OriginType;
-import com.ciro.backend.enums.ReportPeriod;
+import com.ciro.backend.enums.*;
 import com.ciro.backend.exception.BadRequestException;
 import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.BillRepository;
+import com.ciro.backend.repository.CashMovementRepository;
 import com.ciro.backend.repository.SupplierRepository;
 import com.ciro.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +22,14 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.ciro.backend.enums.ReportPeriod.*;
-
 @Service
 public class BillService {
 
     @Autowired private BillRepository billRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private SupplierRepository supplierRepository;
+    @Autowired private CashMovementService cashMovementService;
+    @Autowired private CashMovementRepository cashMovementRepository;
 
     @Transactional
     public BillResponseDTO createBill(BillCreateDTO dto) {
@@ -82,6 +80,17 @@ public class BillService {
         }
 
         Bill savedBill = billRepository.save(bill);
+
+        if (savedBill.getStatus() == BillStatus.PAGADO && savedBill.getFrom() == OriginType.CAJA) {
+            cashMovementService.registrarMovimiento(
+                    savedBill.getAmount(),
+                    savedBill.getCurrencyType(),
+                    savedBill.getPaymentMethod(),
+                    savedBill.getId(),
+                    CashMovementType.EGRESO,
+                    "Egreso por: " + savedBill.getDescription()
+            );
+        }
 
         return new BillResponseDTO(
                 savedBill.getId(),
@@ -159,6 +168,20 @@ public class BillService {
 
         Bill updatedBill = billRepository.save(existingBill);
 
+        if (updatedBill.getStatus() == BillStatus.PAGADO && updatedBill.getFrom() == OriginType.CAJA) {
+            boolean yaExiste = cashMovementRepository.existsByTypeAndReferenceId(CashMovementType.EGRESO, updatedBill.getId());
+
+            if (!yaExiste) {
+                cashMovementService.registrarMovimiento(
+                        updatedBill.getAmount(),
+                        updatedBill.getCurrencyType(),
+                        updatedBill.getPaymentMethod(),
+                        updatedBill.getId(),
+                        CashMovementType.EGRESO,
+                        "Egreso por: " + updatedBill.getDescription()
+                );
+            }
+        }
 
         return new BillResponseDTO(
                 updatedBill.getId(),
