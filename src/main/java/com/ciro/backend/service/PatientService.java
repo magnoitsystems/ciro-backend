@@ -11,6 +11,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,7 +28,11 @@ public class PatientService {
     @Autowired
     private LabelPatientRepository labelPatientRepository;
     @Autowired
+    private PracticeService practiceService;
+    @Autowired
     private TaskService taskService;
+    @Autowired
+    private CurrentAccountRepository currentAccountRepository;
 
     @Transactional
     public Patient createPatient(PatientDTO dto) {
@@ -147,8 +153,9 @@ public class PatientService {
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró el paciente con ID "+ patientId));
 
         Label label = labelRepository.findById(labelId)
-                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el label con ID "+ labelId));
+                .orElseThrow(() -> new RuntimeException("Label no encontrado"));
 
+        // evitar duplicados
         LabelPatient alreadyExists = labelPatientRepository.existsByPatientIdAndLabelId(patientId, labelId);
 
         if (alreadyExists != null) {
@@ -178,5 +185,44 @@ public class PatientService {
         statisticsDTO.setPatients(patients);
 
         return statisticsDTO;
+    }
+
+    public List<PatientDebtorDTO> getDebtorPatients() {
+        Label deudorLabel = labelRepository.findByLabel("Deudor").orElse(null);
+
+        if (deudorLabel == null) {
+            return new ArrayList<>();
+        }
+
+        List<LabelPatient> relations = labelPatientRepository.findLabelPatientByLabel(deudorLabel.getId());
+
+        List<PatientDebtorDTO> debtors = new ArrayList<>();
+
+        for (LabelPatient relation : relations) {
+            Patient patient = relation.getPatient();
+
+            BigDecimal debtPesos = currentAccountRepository
+                    .findTopByPatientIdAndCurrencyOrderByIdDesc(patient.getId(), com.ciro.backend.enums.CurrencyType.PESOS)
+                    .map(com.ciro.backend.entity.CurrentAccount::getBalance)
+                    .orElse(BigDecimal.ZERO);
+
+            BigDecimal debtDolares = currentAccountRepository
+                    .findTopByPatientIdAndCurrencyOrderByIdDesc(patient.getId(), com.ciro.backend.enums.CurrencyType.DOLARES)
+                    .map(com.ciro.backend.entity.CurrentAccount::getBalance)
+                    .orElse(BigDecimal.ZERO);
+
+            if (debtPesos.compareTo(BigDecimal.ZERO) > 0 || debtDolares.compareTo(BigDecimal.ZERO) > 0) {
+                PatientDebtorDTO dto = new PatientDebtorDTO();
+                dto.setId(patient.getId());
+                dto.setDni(patient.getDni());
+                dto.setFullName(patient.getFullName());
+                dto.setDebtPesos(debtPesos);
+                dto.setDebtDolares(debtDolares);
+
+                debtors.add(dto);
+            }
+        }
+
+        return debtors;
     }
 }

@@ -4,7 +4,6 @@ import com.ciro.backend.dto.*;
 import com.ciro.backend.entity.LabelPatient;
 import com.ciro.backend.entity.Patient;
 import com.ciro.backend.service.PatientService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
