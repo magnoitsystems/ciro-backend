@@ -386,9 +386,20 @@ public class PdfGenerationService {
                     String fechaStr = mov.getDate() != null ? mov.getDate().toString() : "S/F";
                     table.addCell(new Phrase(fechaStr, rowFont));
 
-                    String tipoStr = mov.getType() != null ? mov.getType().name() : "";
+                    String tipoStr = "";
+                    if (mov.getType() != null) {
+                        switch (mov.getType()) {
+                            case VOUCHER:
+                                tipoStr = "Comprobante";
+                                break;
+                            case RECEIPT:
+                                tipoStr = "Recibo";
+                                break;
+                            default:
+                                tipoStr = mov.getType().name();
+                        }
+                    }
                     table.addCell(new Phrase(tipoStr, rowFont));
-
                     String detalleStr = mov.getDetail() != null ? mov.getDetail() : "";
                     table.addCell(new Phrase(detalleStr, rowFont));
 
