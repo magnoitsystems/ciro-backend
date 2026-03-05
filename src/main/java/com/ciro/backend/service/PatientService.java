@@ -201,15 +201,15 @@ public class PatientService {
         for (LabelPatient relation : relations) {
             Patient patient = relation.getPatient();
 
-            BigDecimal debtPesos = currentAccountRepository
-                    .findTopByPatientIdAndCurrencyOrderByIdDesc(patient.getId(), com.ciro.backend.enums.CurrencyType.PESOS)
-                    .map(com.ciro.backend.entity.CurrentAccount::getBalance)
-                    .orElse(BigDecimal.ZERO);
+            com.ciro.backend.entity.CurrentAccount lastRecord = currentAccountRepository
+                    .findTopByPatientIdOrderByIdDesc(patient.getId())
+                    .orElse(null);
 
-            BigDecimal debtDolares = currentAccountRepository
-                    .findTopByPatientIdAndCurrencyOrderByIdDesc(patient.getId(), com.ciro.backend.enums.CurrencyType.DOLARES)
-                    .map(com.ciro.backend.entity.CurrentAccount::getBalance)
-                    .orElse(BigDecimal.ZERO);
+            BigDecimal debtPesos = (lastRecord != null && lastRecord.getBalancePesos() != null)
+                    ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
+
+            BigDecimal debtDolares = (lastRecord != null && lastRecord.getBalanceDollars() != null)
+                    ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
 
             if (debtPesos.compareTo(BigDecimal.ZERO) > 0 || debtDolares.compareTo(BigDecimal.ZERO) > 0) {
                 PatientDebtorDTO dto = new PatientDebtorDTO();

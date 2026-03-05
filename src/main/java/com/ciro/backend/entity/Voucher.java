@@ -26,10 +26,6 @@ public class Voucher {
     @JoinColumn(name = "id_user")
     private User user;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "currency")
-    private CurrencyType currency;
-
     public Long getId() {
         return id;
     }
@@ -66,11 +62,4 @@ public class Voucher {
         this.user = user;
     }
 
-    public CurrencyType getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(CurrencyType currency) {
-        this.currency = currency;
-    }
 }

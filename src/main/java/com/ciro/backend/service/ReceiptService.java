@@ -77,15 +77,34 @@ public class ReceiptService {
         accountEntry.setType(CurrentAccountType.RECEIPT);
         accountEntry.setCanceled(false);
 
-        accountEntry.setCurrency(targetCurrency);
+        CurrentAccount lastRecord = currentAccountRepository.findTopByPatientIdOrderByIdDesc(patient.getId()).orElse(null);
+        BigDecimal prevBalancePesos = (lastRecord != null && lastRecord.getBalancePesos() != null) ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
+        BigDecimal prevBalanceDollars = (lastRecord != null && lastRecord.getBalanceDollars() != null) ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
 
-        BigDecimal previousBalance = currentAccountRepository
-                .findTopByPatientIdAndCurrencyOrderByIdDesc(patient.getId(), targetCurrency)
-                .map(CurrentAccount::getBalance)
-                .orElse(BigDecimal.ZERO);
+        BigDecimal txPesos = BigDecimal.ZERO;
+        BigDecimal txDollars = BigDecimal.ZERO;
+        BigDecimal newBalancePesos = prevBalancePesos;
+        BigDecimal newBalanceDollars = prevBalanceDollars;
 
-        BigDecimal newBalance = previousBalance.subtract(targetAmount);
-        accountEntry.setBalance(newBalance);
+        if (isPesoToDollarConversion) {
+            txPesos = dto.getAmount();
+            txDollars = convertedAmount;
+            newBalanceDollars = prevBalanceDollars.subtract(convertedAmount);
+        } else {
+            if (dto.getCurrencyType() == CurrencyType.PESOS) {
+                txPesos = dto.getAmount();
+                newBalancePesos = prevBalancePesos.subtract(dto.getAmount());
+            } else if (dto.getCurrencyType() == CurrencyType.DOLARES) {
+                txDollars = dto.getAmount();
+                newBalanceDollars = prevBalanceDollars.subtract(dto.getAmount());
+            }
+        }
+
+        accountEntry.setTransactionAmountPesos(txPesos);
+        accountEntry.setTransactionAmountDollars(txDollars);
+
+        accountEntry.setBalancePesos(newBalancePesos);
+        accountEntry.setBalanceDollars(newBalanceDollars);
 
         currentAccountRepository.save(accountEntry);
         currentAccountService.updateDebtorLabel(patient);

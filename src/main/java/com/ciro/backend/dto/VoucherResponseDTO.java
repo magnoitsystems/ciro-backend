@@ -7,22 +7,27 @@ import java.time.LocalDate;
 public class VoucherResponseDTO {
     private Long voucherId;
     private LocalDate date;
-    private CurrencyType currency;
-    private BigDecimal totalAmount;
+    private BigDecimal totalAmountPesos;   // ¡NUEVO!
+    private BigDecimal totalAmountDollars;
 
-    public VoucherResponseDTO(Long voucherId, LocalDate date, CurrencyType currency, BigDecimal totalAmount) {
+    public VoucherResponseDTO(Long voucherId, LocalDate date, BigDecimal totalAmountPesos, BigDecimal totalAmountDollars) {
         this.voucherId = voucherId;
         this.date = date;
-        this.currency = currency;
-        this.totalAmount = totalAmount;
+        this.totalAmountPesos = totalAmountPesos;
+        this.totalAmountDollars = totalAmountDollars;
     }
 
     public Long getVoucherId() { return voucherId; }
     public void setVoucherId(Long voucherId) { this.voucherId = voucherId; }
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }
-    public CurrencyType getCurrency() { return currency; }
-    public void setCurrency(CurrencyType currency) { this.currency = currency; }
-    public BigDecimal getTotalAmount() { return totalAmount; }
-    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+    public BigDecimal getTotalAmountPesos() { return totalAmountPesos; }
+    public BigDecimal getTotalAmountDollars() { return totalAmountDollars; }
+
+    public void setTotalAmountDollars(BigDecimal totalAmountDollars) {
+        this.totalAmountDollars = totalAmountDollars;
+    }
+    public void setTotalAmountPesos(BigDecimal totalAmountPesos) {
+        this.totalAmountPesos = totalAmountPesos;
+    }
 }

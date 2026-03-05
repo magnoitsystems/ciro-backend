@@ -8,7 +8,6 @@ public class VoucherCreateDTO {
     private Long patientId;
     private Long userId;
     private LocalDate voucherDate;
-    private CurrencyType currency;
     private String observations;
     private List<VoucherDetailDTO> details;
 
@@ -18,8 +17,6 @@ public class VoucherCreateDTO {
     public void setUserId(Long userId) { this.userId = userId; }
     public LocalDate getVoucherDate() { return voucherDate; }
     public void setVoucherDate(LocalDate voucherDate) { this.voucherDate = voucherDate; }
-    public CurrencyType getCurrency() { return currency; }
-    public void setCurrency(CurrencyType currency) { this.currency = currency; }
     public String getObservations() { return observations; }
     public void setObservations(String observations) { this.observations = observations; }
     public List<VoucherDetailDTO> getDetails() { return details; }

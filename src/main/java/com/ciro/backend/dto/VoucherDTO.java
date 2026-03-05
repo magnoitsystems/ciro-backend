@@ -12,7 +12,8 @@ public class VoucherDTO {
     private LocalDate voucherDate;
     private CurrencyType currency;
     private String observations;
-    private BigDecimal totalAmount;
+    private BigDecimal totalAmountPesos;
+    private BigDecimal totalAmountDollars;
     private List<VoucherDetailDTO> details;
 
     public Long getId() { return id; }
@@ -33,9 +34,10 @@ public class VoucherDTO {
     public String getObservations() { return observations; }
     public void setObservations(String observations) { this.observations = observations; }
 
-    public BigDecimal getTotalAmount() { return totalAmount; }
-    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
-
+    public BigDecimal getTotalAmountPesos() { return totalAmountPesos; }
+    public BigDecimal getTotalAmountDollars() { return totalAmountDollars; }
+    public void setTotalAmountPesos(BigDecimal totalAmountPesos){ this.totalAmountPesos = totalAmountPesos; }
+    public void setTotalAmountDollars(BigDecimal totalAmountDollars){ this.totalAmountDollars = totalAmountDollars; }
     public List<VoucherDetailDTO> getDetails() { return details; }
     public void setDetails(List<VoucherDetailDTO> details) { this.details = details; }
 }

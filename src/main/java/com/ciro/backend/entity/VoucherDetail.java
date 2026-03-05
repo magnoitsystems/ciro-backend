@@ -1,5 +1,6 @@
 package com.ciro.backend.entity;
 
+import com.ciro.backend.enums.CurrencyType;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -23,6 +24,18 @@ public class VoucherDetail {
     @ManyToOne
     @JoinColumn(name = "id_voucher")
     private Voucher voucher;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "currency", nullable = false)
+    private CurrencyType currency;
+
+    public CurrencyType getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(CurrencyType currency) {
+        this.currency = currency;
+    }
 
     public Long getId() {
         return id;

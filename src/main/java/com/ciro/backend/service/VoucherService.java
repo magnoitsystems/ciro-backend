@@ -14,6 +14,7 @@ import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -43,52 +44,63 @@ public class VoucherService {
         voucher.setPatient(patient);
         voucher.setUser(professional);
         voucher.setVoucherDate(dto.getVoucherDate() != null ? dto.getVoucherDate() : LocalDate.now());
-        voucher.setCurrency(dto.getCurrency());
         voucher.setObservations(dto.getObservations());
 
         Voucher savedVoucher = voucherRepository.save(voucher);
 
-        BigDecimal totalCalculated = BigDecimal.ZERO;
+        BigDecimal totalPesos = BigDecimal.ZERO;
+        BigDecimal totalDollars = BigDecimal.ZERO;
 
         for (VoucherDetailDTO detailDto : dto.getDetails()) {
+            if (detailDto.getCurrency() == null) {
+                throw new BadRequestException("Cada detalle debe especificar su moneda (currency).");
+            }
+
             VoucherDetail detail = new VoucherDetail();
             detail.setVoucher(savedVoucher);
             detail.setDetail(detailDto.getDetail());
             detail.setUnitPrice(detailDto.getUnitPrice());
             detail.setAmount(detailDto.getAmount());
+            detail.setCurrency(detailDto.getCurrency());
 
             voucherDetailRepository.save(detail);
 
             BigDecimal subtotal = detailDto.getUnitPrice().multiply(BigDecimal.valueOf(detailDto.getAmount()));
-            totalCalculated = totalCalculated.add(subtotal);
+
+            if (detailDto.getCurrency() == CurrencyType.PESOS) {
+                totalPesos = totalPesos.add(subtotal);
+            } else if (detailDto.getCurrency() == CurrencyType.DOLARES) {
+                totalDollars = totalDollars.add(subtotal);
+            }
         }
 
-        CurrentAccount accountEntry = new CurrentAccount();
-        accountEntry.setPatient(patient);
-        accountEntry.setVoucher(savedVoucher);
-        accountEntry.setType(CurrentAccountType.VOUCHER);
-        accountEntry.setCanceled(false);
+        if (totalPesos.compareTo(BigDecimal.ZERO) > 0 || totalDollars.compareTo(BigDecimal.ZERO) > 0) {
 
-        CurrencyType txCurrency = savedVoucher.getCurrency();
-        accountEntry.setCurrency(txCurrency);
+            CurrentAccount accountEntry = new CurrentAccount();
+            accountEntry.setPatient(patient);
+            accountEntry.setVoucher(savedVoucher);
+            accountEntry.setType(CurrentAccountType.VOUCHER);
+            accountEntry.setCanceled(false);
 
-        BigDecimal previousBalance = currentAccountRepository
-                .findTopByPatientIdAndCurrencyOrderByIdDesc(patient.getId(), txCurrency)
-                .map(CurrentAccount::getBalance)
-                .orElse(BigDecimal.ZERO);
+            accountEntry.setTransactionAmountPesos(totalPesos);
+            accountEntry.setTransactionAmountDollars(totalDollars);
 
-        BigDecimal newBalance = previousBalance.add(totalCalculated);
-        accountEntry.setBalance(newBalance);
+            CurrentAccount lastRecord = currentAccountRepository.findTopByPatientIdOrderByIdDesc(patient.getId()).orElse(null);
 
-        currentAccountRepository.save(accountEntry);
+            BigDecimal prevBalancePesos = (lastRecord != null && lastRecord.getBalancePesos() != null)
+                    ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
+            BigDecimal prevBalanceDollars = (lastRecord != null && lastRecord.getBalanceDollars() != null)
+                    ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
+
+            accountEntry.setBalancePesos(prevBalancePesos.add(totalPesos));
+            accountEntry.setBalanceDollars(prevBalanceDollars.add(totalDollars));
+
+            currentAccountRepository.save(accountEntry);
+        }
+
         currentAccountService.updateDebtorLabel(patient);
 
-        return new VoucherResponseDTO(
-                savedVoucher.getId(),
-                savedVoucher.getVoucherDate(),
-                savedVoucher.getCurrency(),
-                totalCalculated
-        );
+        return new VoucherResponseDTO(savedVoucher.getId(), savedVoucher.getVoucherDate(), totalPesos, totalDollars);
     }
 
     public VoucherDTO getVoucherById(Long id) {
@@ -102,26 +114,32 @@ public class VoucherService {
         responseDTO.setPatientFullName(voucher.getPatient().getFullName());
         responseDTO.setProfessionalFullName(voucher.getUser().getName() + " " + voucher.getUser().getLastname());
         responseDTO.setVoucherDate(voucher.getVoucherDate());
-        responseDTO.setCurrency(voucher.getCurrency());
         responseDTO.setObservations(voucher.getObservations());
 
-        BigDecimal total = BigDecimal.ZERO;
-        List<VoucherDetailDTO> detailDTOs = new java.util.ArrayList<>();
+        BigDecimal totalPesos = BigDecimal.ZERO;
+        BigDecimal totalDollars = BigDecimal.ZERO;
+        List<VoucherDetailDTO> detailDTOs = new ArrayList<>();
 
         for (VoucherDetail detail : details) {
             VoucherDetailDTO detailDTO = new VoucherDetailDTO();
             detailDTO.setDetail(detail.getDetail());
             detailDTO.setUnitPrice(detail.getUnitPrice());
             detailDTO.setAmount(detail.getAmount());
+            detailDTO.setCurrency(detail.getCurrency());
 
             detailDTOs.add(detailDTO);
 
             BigDecimal subtotal = detail.getUnitPrice().multiply(BigDecimal.valueOf(detail.getAmount()));
-            total = total.add(subtotal);
+            if (detail.getCurrency() == CurrencyType.PESOS) {
+                totalPesos = totalPesos.add(subtotal);
+            } else {
+                totalDollars = totalDollars.add(subtotal);
+            }
         }
 
         responseDTO.setDetails(detailDTOs);
-        responseDTO.setTotalAmount(total);
+        responseDTO.setTotalAmountPesos(totalPesos);
+        responseDTO.setTotalAmountDollars(totalDollars);
 
         return responseDTO;
     }
@@ -132,26 +150,29 @@ public class VoucherService {
         }
 
         List<Voucher> vouchers = voucherRepository.findByPatientId(patientId);
-        List<VoucherResponseDTO> responseList = new java.util.ArrayList<>();
+        List<VoucherResponseDTO> responseList = new ArrayList<>();
 
         for (Voucher voucher : vouchers) {
-
             List<VoucherDetail> details = voucherDetailRepository.findByVoucherId(voucher.getId());
-            BigDecimal totalAmount = BigDecimal.ZERO;
+
+            BigDecimal totalPesos = BigDecimal.ZERO;
+            BigDecimal totalDollars = BigDecimal.ZERO;
 
             for (VoucherDetail detail : details) {
                 BigDecimal subtotal = detail.getUnitPrice().multiply(BigDecimal.valueOf(detail.getAmount()));
-                totalAmount = totalAmount.add(subtotal);
+                if (detail.getCurrency() == CurrencyType.PESOS) {
+                    totalPesos = totalPesos.add(subtotal);
+                } else {
+                    totalDollars = totalDollars.add(subtotal);
+                }
             }
 
-            VoucherResponseDTO dto = new VoucherResponseDTO(
+            responseList.add(new VoucherResponseDTO(
                     voucher.getId(),
                     voucher.getVoucherDate(),
-                    voucher.getCurrency(),
-                    totalAmount
-            );
-
-            responseList.add(dto);
+                    totalPesos,
+                    totalDollars
+            ));
         }
 
         return responseList;

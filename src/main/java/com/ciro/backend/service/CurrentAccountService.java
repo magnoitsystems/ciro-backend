@@ -18,7 +18,6 @@ public class CurrentAccountService {
 
     @Autowired private CurrentAccountRepository currentAccountRepository;
     @Autowired private PatientRepository patientRepository;
-    @Autowired private VoucherDetailRepository voucherDetailRepository;
     @Autowired private LabelRepository labelRepository;
     @Autowired private LabelPatientRepository labelPatientRepository;
 
@@ -31,19 +30,13 @@ public class CurrentAccountService {
         response.setPatientId(patient.getId());
         response.setPatientFullName(patient.getFullName());
 
-        BigDecimal latestPesosBalance = currentAccountRepository
-                .findTopByPatientIdAndCurrencyOrderByIdDesc(patientId, CurrencyType.PESOS)
-                .map(CurrentAccount::getBalance)
-                .orElse(BigDecimal.ZERO);
+        CurrentAccount lastRecord = currentAccountRepository.findTopByPatientIdOrderByIdDesc(patientId).orElse(null);
 
-        response.setDebtInPesos(latestPesosBalance.compareTo(BigDecimal.ZERO) > 0 ? latestPesosBalance : BigDecimal.ZERO);
+        BigDecimal currentPesos = (lastRecord != null && lastRecord.getBalancePesos() != null) ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
+        BigDecimal currentDollars = (lastRecord != null && lastRecord.getBalanceDollars() != null) ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
 
-        BigDecimal latestDollarsBalance = currentAccountRepository
-                .findTopByPatientIdAndCurrencyOrderByIdDesc(patientId, CurrencyType.DOLARES)
-                .map(CurrentAccount::getBalance)
-                .orElse(BigDecimal.ZERO);
-
-        response.setDebtInDollars(latestDollarsBalance.compareTo(BigDecimal.ZERO) > 0 ? latestDollarsBalance : BigDecimal.ZERO);
+        response.setDebtInPesos(currentPesos.compareTo(BigDecimal.ZERO) > 0 ? currentPesos : BigDecimal.ZERO);
+        response.setDebtInDollars(currentDollars.compareTo(BigDecimal.ZERO) > 0 ? currentDollars : BigDecimal.ZERO);
 
         List<CurrentAccount> accounts;
         if (type != null) {
@@ -58,20 +51,18 @@ public class CurrentAccountService {
             CurrentAccountMovementDTO mov = new CurrentAccountMovementDTO();
             mov.setId(acc.getId());
             mov.setType(acc.getType());
-            mov.setCurrency(acc.getCurrency());
-            mov.setBalance(acc.getBalance());
+
+            mov.setTransactionAmountPesos(acc.getTransactionAmountPesos() != null ? acc.getTransactionAmountPesos() : BigDecimal.ZERO);
+            mov.setTransactionAmountDollars(acc.getTransactionAmountDollars() != null ? acc.getTransactionAmountDollars() : BigDecimal.ZERO);
+            mov.setBalancePesos(acc.getBalancePesos() != null ? acc.getBalancePesos() : BigDecimal.ZERO);
+            mov.setBalanceDollars(acc.getBalanceDollars() != null ? acc.getBalanceDollars() : BigDecimal.ZERO);
 
             if (acc.getType() == CurrentAccountType.VOUCHER && acc.getVoucher() != null) {
                 Voucher v = acc.getVoucher();
                 mov.setDate(v.getVoucherDate());
-                mov.setDetail("Comprobante #" + v.getId() + " - " + v.getObservations());
 
-                List<VoucherDetail> details = voucherDetailRepository.findByVoucherId(v.getId());
-                BigDecimal voucherTotal = BigDecimal.ZERO;
-                for (VoucherDetail d : details) {
-                    voucherTotal = voucherTotal.add(d.getUnitPrice().multiply(BigDecimal.valueOf(d.getAmount())));
-                }
-                mov.setTransactionAmount(voucherTotal);
+                String obs = v.getObservations() != null ? v.getObservations() : "Sin observaciones";
+                mov.setDetail("Comprobante #" + v.getId() + " - " + obs);
 
             } else if (acc.getType() == CurrentAccountType.RECEIPT && acc.getReceipt() != null) {
                 Receipt r = acc.getReceipt();
@@ -79,10 +70,8 @@ public class CurrentAccountService {
 
                 if (r.getConvertedAmount() != null) {
                     mov.setDetail("Recibo #" + r.getId() + " - Pagó $" + r.getAmount() + " PESOS (Cot: " + r.getExchangeRate() + ") -> Convertido a U$D");
-                    mov.setTransactionAmount(r.getConvertedAmount());
                 } else {
                     mov.setDetail("Recibo #" + r.getId() + " - Pago recibido en " + r.getCurrencyType());
-                    mov.setTransactionAmount(r.getAmount());
                 }
             }
 
@@ -94,18 +83,17 @@ public class CurrentAccountService {
     }
 
     public void updateDebtorLabel(Patient patient) {
-        BigDecimal pesosBalance = currentAccountRepository
-                .findTopByPatientIdAndCurrencyOrderByIdDesc(patient.getId(), CurrencyType.PESOS)
-                .map(CurrentAccount::getBalance)
-                .orElse(BigDecimal.ZERO);
+        CurrentAccount lastRecord = currentAccountRepository.findTopByPatientIdOrderByIdDesc(patient.getId()).orElse(null);
 
-        BigDecimal dolaresBalance = currentAccountRepository
-                .findTopByPatientIdAndCurrencyOrderByIdDesc(patient.getId(), CurrencyType.DOLARES)
-                .map(CurrentAccount::getBalance)
-                .orElse(BigDecimal.ZERO);
+        BigDecimal pesosBalance = BigDecimal.ZERO;
+        BigDecimal dolaresBalance = BigDecimal.ZERO;
 
-        boolean hasDebt = pesosBalance.compareTo(BigDecimal.ZERO) > 0 ||
-                dolaresBalance.compareTo(BigDecimal.ZERO) > 0;
+        if (lastRecord != null) {
+            pesosBalance = lastRecord.getBalancePesos() != null ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
+            dolaresBalance = lastRecord.getBalanceDollars() != null ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
+        }
+
+        boolean hasDebt = pesosBalance.compareTo(BigDecimal.ZERO) > 0 || dolaresBalance.compareTo(BigDecimal.ZERO) > 0;
 
         Label debtorLabel = labelRepository.findByLabel("Deudor")
                 .orElseGet(() -> {

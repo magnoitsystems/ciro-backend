@@ -311,7 +311,7 @@ public class PdfGenerationService {
 
     public byte[] generateCurrentAccountPdf(com.ciro.backend.dto.CurrentAccountResponseDTO account) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            Document document = new Document(PageSize.A4, 40, 40, 40, 40);
+            Document document = new Document(PageSize.A4, 30, 30, 40, 40);
             PdfWriter.getInstance(document, baos);
             document.open();
 
@@ -334,8 +334,8 @@ public class PdfGenerationService {
             title.setSpacingAfter(10);
             document.add(title);
 
-            Font headFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
-            Font rowFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
+            Font headFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9);
+            Font rowFont = FontFactory.getFont(FontFactory.HELVETICA, 8);
             Font highlightFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11);
 
             PdfPTable infoTable = new PdfPTable(2);
@@ -347,12 +347,12 @@ public class PdfGenerationService {
 
             infoTable.addCell(new Phrase("Deuda actual (Pesos):", headFont));
             PdfPCell pesosCell = new PdfPCell(new Phrase("$ " + account.getDebtInPesos(), highlightFont));
-            pesosCell.setBackgroundColor(new java.awt.Color(255, 240, 240)); // Un rojito muy claro
+            pesosCell.setBackgroundColor(new java.awt.Color(255, 240, 240));
             infoTable.addCell(pesosCell);
 
             infoTable.addCell(new Phrase("Deuda actual (Dólares):", headFont));
             PdfPCell usdCell = new PdfPCell(new Phrase("U$D " + account.getDebtInDollars(), highlightFont));
-            usdCell.setBackgroundColor(new java.awt.Color(240, 255, 240)); // Un verdecito muy claro
+            usdCell.setBackgroundColor(new java.awt.Color(240, 255, 240));
             infoTable.addCell(usdCell);
 
             for (int i = 0; i < infoTable.getRows().size(); i++) {
@@ -365,19 +365,20 @@ public class PdfGenerationService {
             }
             document.add(infoTable);
 
-            Paragraph subtitle = new Paragraph("HISTORIAL DE MOVIMIENTOS", headFont);
+            Paragraph subtitle = new Paragraph("HISTORIAL DE MOVIMIENTOS", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10));
             subtitle.setSpacingAfter(10);
             document.add(subtitle);
 
-            PdfPTable table = new PdfPTable(6);
+            PdfPTable table = new PdfPTable(7);
             table.setWidthPercentage(100);
-            table.setWidths(new float[]{1.5f, 1.2f, 3.5f, 1f, 1.5f, 1.5f}); // Anchos de columnas
+            table.setWidths(new float[]{1.3f, 1.2f, 3.0f, 1.2f, 1.2f, 1.2f, 1.2f});
 
-            String[] headers = {"Fecha", "Tipo", "Detalle", "Moneda", "Monto", "Saldo Resultante"};
+            String[] headers = {"Fecha", "Tipo", "Detalle", "Mov. $", "Mov. U$D", "Saldo $", "Saldo U$D"};
             for (String h : headers) {
                 PdfPCell cell = new PdfPCell(new Phrase(h, headFont));
                 cell.setBackgroundColor(new java.awt.Color(230, 230, 230));
                 cell.setPaddingBottom(5);
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
                 table.addCell(cell);
             }
 
@@ -400,21 +401,35 @@ public class PdfGenerationService {
                         }
                     }
                     table.addCell(new Phrase(tipoStr, rowFont));
+
                     String detalleStr = mov.getDetail() != null ? mov.getDetail() : "";
                     table.addCell(new Phrase(detalleStr, rowFont));
 
-                    String monedaStr = mov.getCurrency() != null ? mov.getCurrency().name() : "";
-                    table.addCell(new Phrase(monedaStr, rowFont));
+                    BigDecimal movPesos = mov.getTransactionAmountPesos() != null ? mov.getTransactionAmountPesos() : BigDecimal.ZERO;
+                    String textoMovPesos = movPesos.compareTo(BigDecimal.ZERO) == 0 ? "-" : "$ " + movPesos.toString();
+                    PdfPCell cellMovPesos = new PdfPCell(new Phrase(textoMovPesos, rowFont));
+                    cellMovPesos.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                    table.addCell(cellMovPesos);
 
-                    BigDecimal monto = mov.getTransactionAmount() != null ? mov.getTransactionAmount() : BigDecimal.ZERO;
-                    table.addCell(new Phrase(monto.toString(), rowFont));
+                    BigDecimal movUsd = mov.getTransactionAmountDollars() != null ? mov.getTransactionAmountDollars() : BigDecimal.ZERO;
+                    String textoMovUsd = movUsd.compareTo(BigDecimal.ZERO) == 0 ? "-" : "U$D " + movUsd.toString();
+                    PdfPCell cellMovUsd = new PdfPCell(new Phrase(textoMovUsd, rowFont));
+                    cellMovUsd.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                    table.addCell(cellMovUsd);
 
-                    BigDecimal saldo = mov.getBalance() != null ? mov.getBalance() : BigDecimal.ZERO;
-                    table.addCell(new Phrase(saldo.toString(), rowFont));
+                    BigDecimal saldoPesos = mov.getBalancePesos() != null ? mov.getBalancePesos() : BigDecimal.ZERO;
+                    PdfPCell cellSaldoPesos = new PdfPCell(new Phrase("$ " + saldoPesos.toString(), rowFont));
+                    cellSaldoPesos.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                    table.addCell(cellSaldoPesos);
+
+                    BigDecimal saldoUsd = mov.getBalanceDollars() != null ? mov.getBalanceDollars() : BigDecimal.ZERO;
+                    PdfPCell cellSaldoUsd = new PdfPCell(new Phrase("U$D " + saldoUsd.toString(), rowFont));
+                    cellSaldoUsd.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                    table.addCell(cellSaldoUsd);
                 }
             } else {
                 PdfPCell emptyCell = new PdfPCell(new Phrase("No se registraron movimientos.", rowFont));
-                emptyCell.setColspan(6);
+                emptyCell.setColspan(7);
                 emptyCell.setHorizontalAlignment(Element.ALIGN_CENTER);
                 emptyCell.setPadding(10);
                 table.addCell(emptyCell);

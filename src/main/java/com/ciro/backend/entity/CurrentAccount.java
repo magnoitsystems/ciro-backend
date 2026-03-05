@@ -32,12 +32,17 @@ public class CurrentAccount {
     @Column
     private Boolean canceled;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "currency")
-    private CurrencyType currency;
+    @Column(name = "transaction_amount_pesos", precision = 12, scale = 2)
+    private BigDecimal transactionAmountPesos;
 
-    @Column(precision = 10, scale = 2)
-    private BigDecimal balance;
+    @Column(name = "transaction_amount_dollars", precision = 12, scale = 2)
+    private BigDecimal transactionAmountDollars;
+
+    @Column(name = "balance_pesos", precision = 12, scale = 2)
+    private BigDecimal balancePesos;
+
+    @Column(name = "balance_dollars", precision = 12, scale = 2)
+    private BigDecimal balanceDollars;
 
     public Long getId() {
         return id;
@@ -83,19 +88,15 @@ public class CurrentAccount {
         this.canceled = canceled;
     }
 
-    public CurrencyType getCurrency() {
-        return currency;
-    }
+    public BigDecimal getTransactionAmountPesos() { return transactionAmountPesos; }
+    public void setTransactionAmountPesos(BigDecimal transactionAmountPesos) { this.transactionAmountPesos = transactionAmountPesos; }
 
-    public void setCurrency(CurrencyType currency) {
-        this.currency = currency;
-    }
+    public BigDecimal getTransactionAmountDollars() { return transactionAmountDollars; }
+    public void setTransactionAmountDollars(BigDecimal transactionAmountDollars) { this.transactionAmountDollars = transactionAmountDollars; }
 
-    public BigDecimal getBalance() {
-        return balance;
-    }
+    public BigDecimal getBalancePesos() { return balancePesos; }
+    public void setBalancePesos(BigDecimal balancePesos) { this.balancePesos = balancePesos; }
 
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
-    }
+    public BigDecimal getBalanceDollars() { return balanceDollars; }
+    public void setBalanceDollars(BigDecimal balanceDollars) { this.balanceDollars = balanceDollars; }
 }
