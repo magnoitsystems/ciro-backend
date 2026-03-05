@@ -13,6 +13,7 @@ public class CurrentAccountMovementDTO {
     private BigDecimal transactionAmountDollars;
     private BigDecimal balancePesos;
     private BigDecimal balanceDollars;
+    private Boolean canceled;
 
     // Getters y Setters
     public Long getId() { return id; }
@@ -38,4 +39,7 @@ public class CurrentAccountMovementDTO {
 
     public BigDecimal getBalanceDollars() { return balanceDollars; }
     public void setBalanceDollars(BigDecimal balanceDollars) { this.balanceDollars = balanceDollars; }
+
+    public Boolean getCanceled() { return canceled; }
+    public void setCanceled(Boolean canceled) { this.canceled = canceled; }
 }

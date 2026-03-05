@@ -205,11 +205,13 @@ public class PatientService {
                     .findTopByPatientIdOrderByIdDesc(patient.getId())
                     .orElse(null);
 
-            BigDecimal debtPesos = (lastRecord != null && lastRecord.getBalancePesos() != null)
-                    ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
+            BigDecimal debtPesos = BigDecimal.ZERO;
+            BigDecimal debtDolares = BigDecimal.ZERO;
 
-            BigDecimal debtDolares = (lastRecord != null && lastRecord.getBalanceDollars() != null)
-                    ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
+            if (lastRecord != null && (lastRecord.getCanceled() == null || !lastRecord.getCanceled())) {
+                debtPesos = lastRecord.getBalancePesos() != null ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
+                debtDolares = lastRecord.getBalanceDollars() != null ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
+            }
 
             if (debtPesos.compareTo(BigDecimal.ZERO) > 0 || debtDolares.compareTo(BigDecimal.ZERO) > 0) {
                 PatientDebtorDTO dto = new PatientDebtorDTO();

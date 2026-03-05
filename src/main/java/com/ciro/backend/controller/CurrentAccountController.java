@@ -42,4 +42,10 @@ public class CurrentAccountController {
         CurrentAccountResponseDTO account = currentAccountService.getPatientCurrentAccount(patientId, type);
         return ResponseEntity.ok(account);
     }
+
+    @PutMapping("/patient/{patientId}/cancel-last")
+    public ResponseEntity<String> cancelLastMovement(@PathVariable Long patientId) {
+        currentAccountService.cancelPatientDebt(patientId);
+        return ResponseEntity.ok("El último movimiento fue cancelado exitosamente.");
+    }
 }
