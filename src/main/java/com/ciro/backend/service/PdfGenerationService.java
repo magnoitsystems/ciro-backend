@@ -308,4 +308,119 @@ public class PdfGenerationService {
             throw new RuntimeException("Error al generar PDF de caja: " + e.getMessage(), e);
         }
     }
+
+    public byte[] generateCurrentAccountPdf(com.ciro.backend.dto.CurrentAccountResponseDTO account) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            Document document = new Document(PageSize.A4, 40, 40, 40, 40);
+            PdfWriter.getInstance(document, baos);
+            document.open();
+
+            try {
+                URL imageUrl = getClass().getResource("/images/logo.png");
+                if (imageUrl != null) {
+                    Image logo = Image.getInstance(imageUrl);
+                    logo.scaleToFit(120, 120);
+                    logo.setAlignment(Element.ALIGN_CENTER);
+                    document.add(logo);
+                }
+            } catch (Exception e) {
+                System.out.println("No se pudo cargar el logo: " + e.getMessage());
+            }
+
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
+            Paragraph title = new Paragraph("ESTADO DE CUENTA CORRIENTE", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingBefore(15);
+            title.setSpacingAfter(10);
+            document.add(title);
+
+            Font headFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
+            Font rowFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
+            Font highlightFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11);
+
+            PdfPTable infoTable = new PdfPTable(2);
+            infoTable.setWidthPercentage(100);
+            infoTable.setSpacingAfter(20);
+
+            infoTable.addCell(new Phrase("Paciente:", headFont));
+            infoTable.addCell(new Phrase(account.getPatientFullName(), rowFont));
+
+            infoTable.addCell(new Phrase("Deuda actual (Pesos):", headFont));
+            PdfPCell pesosCell = new PdfPCell(new Phrase("$ " + account.getDebtInPesos(), highlightFont));
+            pesosCell.setBackgroundColor(new java.awt.Color(255, 240, 240)); // Un rojito muy claro
+            infoTable.addCell(pesosCell);
+
+            infoTable.addCell(new Phrase("Deuda actual (Dólares):", headFont));
+            PdfPCell usdCell = new PdfPCell(new Phrase("U$D " + account.getDebtInDollars(), highlightFont));
+            usdCell.setBackgroundColor(new java.awt.Color(240, 255, 240)); // Un verdecito muy claro
+            infoTable.addCell(usdCell);
+
+            for (int i = 0; i < infoTable.getRows().size(); i++) {
+                for (int j = 0; j < infoTable.getRow(i).getCells().length; j++) {
+                    if (infoTable.getRow(i).getCells()[j] != null) {
+                        infoTable.getRow(i).getCells()[j].setBorder(Rectangle.NO_BORDER);
+                        infoTable.getRow(i).getCells()[j].setPaddingBottom(8);
+                    }
+                }
+            }
+            document.add(infoTable);
+
+            Paragraph subtitle = new Paragraph("HISTORIAL DE MOVIMIENTOS", headFont);
+            subtitle.setSpacingAfter(10);
+            document.add(subtitle);
+
+            PdfPTable table = new PdfPTable(6);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[]{1.5f, 1.2f, 3.5f, 1f, 1.5f, 1.5f}); // Anchos de columnas
+
+            String[] headers = {"Fecha", "Tipo", "Detalle", "Moneda", "Monto", "Saldo Resultante"};
+            for (String h : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(h, headFont));
+                cell.setBackgroundColor(new java.awt.Color(230, 230, 230));
+                cell.setPaddingBottom(5);
+                table.addCell(cell);
+            }
+
+            if (account.getMovements() != null && !account.getMovements().isEmpty()) {
+                for (com.ciro.backend.dto.CurrentAccountMovementDTO mov : account.getMovements()) {
+                    String fechaStr = mov.getDate() != null ? mov.getDate().toString() : "S/F";
+                    table.addCell(new Phrase(fechaStr, rowFont));
+
+                    String tipoStr = mov.getType() != null ? mov.getType().name() : "";
+                    table.addCell(new Phrase(tipoStr, rowFont));
+
+                    String detalleStr = mov.getDetail() != null ? mov.getDetail() : "";
+                    table.addCell(new Phrase(detalleStr, rowFont));
+
+                    String monedaStr = mov.getCurrency() != null ? mov.getCurrency().name() : "";
+                    table.addCell(new Phrase(monedaStr, rowFont));
+
+                    BigDecimal monto = mov.getTransactionAmount() != null ? mov.getTransactionAmount() : BigDecimal.ZERO;
+                    table.addCell(new Phrase(monto.toString(), rowFont));
+
+                    BigDecimal saldo = mov.getBalance() != null ? mov.getBalance() : BigDecimal.ZERO;
+                    table.addCell(new Phrase(saldo.toString(), rowFont));
+                }
+            } else {
+                PdfPCell emptyCell = new PdfPCell(new Phrase("No se registraron movimientos.", rowFont));
+                emptyCell.setColspan(6);
+                emptyCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                emptyCell.setPadding(10);
+                table.addCell(emptyCell);
+            }
+
+            document.add(table);
+
+            Paragraph footer = new Paragraph("Documento generado el " + java.time.LocalDate.now().toString(), FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 8));
+            footer.setAlignment(Element.ALIGN_CENTER);
+            footer.setSpacingBefore(30);
+            document.add(footer);
+
+            document.close();
+            return baos.toByteArray();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al generar el PDF de la cuenta corriente", e);
+        }
+    }
 }
