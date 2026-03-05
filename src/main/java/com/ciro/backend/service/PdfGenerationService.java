@@ -338,6 +338,8 @@ public class PdfGenerationService {
             Font rowFont = FontFactory.getFont(FontFactory.HELVETICA, 8);
             Font highlightFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11);
 
+            Font canceledFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8, new java.awt.Color(204, 0, 0));
+
             PdfPTable infoTable = new PdfPTable(2);
             infoTable.setWidthPercentage(100);
             infoTable.setSpacingAfter(20);
@@ -384,8 +386,12 @@ public class PdfGenerationService {
 
             if (account.getMovements() != null && !account.getMovements().isEmpty()) {
                 for (com.ciro.backend.dto.CurrentAccountMovementDTO mov : account.getMovements()) {
+
+                    boolean isCanceled = Boolean.TRUE.equals(mov.getCanceled());
+                    Font currentFont = isCanceled ? canceledFont : rowFont;
+
                     String fechaStr = mov.getDate() != null ? mov.getDate().toString() : "S/F";
-                    table.addCell(new Phrase(fechaStr, rowFont));
+                    table.addCell(new Phrase(fechaStr, currentFont));
 
                     String tipoStr = "";
                     if (mov.getType() != null) {
@@ -400,30 +406,33 @@ public class PdfGenerationService {
                                 tipoStr = mov.getType().name();
                         }
                     }
-                    table.addCell(new Phrase(tipoStr, rowFont));
+                    table.addCell(new Phrase(tipoStr, currentFont));
 
                     String detalleStr = mov.getDetail() != null ? mov.getDetail() : "";
-                    table.addCell(new Phrase(detalleStr, rowFont));
+                    if (isCanceled) {
+                        detalleStr += " [DEUDA CANCELADA]";
+                    }
+                    table.addCell(new Phrase(detalleStr, currentFont));
 
                     BigDecimal movPesos = mov.getTransactionAmountPesos() != null ? mov.getTransactionAmountPesos() : BigDecimal.ZERO;
                     String textoMovPesos = movPesos.compareTo(BigDecimal.ZERO) == 0 ? "-" : "$ " + movPesos.toString();
-                    PdfPCell cellMovPesos = new PdfPCell(new Phrase(textoMovPesos, rowFont));
+                    PdfPCell cellMovPesos = new PdfPCell(new Phrase(textoMovPesos, currentFont));
                     cellMovPesos.setHorizontalAlignment(Element.ALIGN_RIGHT);
                     table.addCell(cellMovPesos);
 
                     BigDecimal movUsd = mov.getTransactionAmountDollars() != null ? mov.getTransactionAmountDollars() : BigDecimal.ZERO;
                     String textoMovUsd = movUsd.compareTo(BigDecimal.ZERO) == 0 ? "-" : "U$D " + movUsd.toString();
-                    PdfPCell cellMovUsd = new PdfPCell(new Phrase(textoMovUsd, rowFont));
+                    PdfPCell cellMovUsd = new PdfPCell(new Phrase(textoMovUsd, currentFont));
                     cellMovUsd.setHorizontalAlignment(Element.ALIGN_RIGHT);
                     table.addCell(cellMovUsd);
 
                     BigDecimal saldoPesos = mov.getBalancePesos() != null ? mov.getBalancePesos() : BigDecimal.ZERO;
-                    PdfPCell cellSaldoPesos = new PdfPCell(new Phrase("$ " + saldoPesos.toString(), rowFont));
+                    PdfPCell cellSaldoPesos = new PdfPCell(new Phrase("$ " + saldoPesos.toString(), currentFont));
                     cellSaldoPesos.setHorizontalAlignment(Element.ALIGN_RIGHT);
                     table.addCell(cellSaldoPesos);
 
                     BigDecimal saldoUsd = mov.getBalanceDollars() != null ? mov.getBalanceDollars() : BigDecimal.ZERO;
-                    PdfPCell cellSaldoUsd = new PdfPCell(new Phrase("U$D " + saldoUsd.toString(), rowFont));
+                    PdfPCell cellSaldoUsd = new PdfPCell(new Phrase("U$D " + saldoUsd.toString(), currentFont));
                     cellSaldoUsd.setHorizontalAlignment(Element.ALIGN_RIGHT);
                     table.addCell(cellSaldoUsd);
                 }
