@@ -22,6 +22,9 @@ public class User {
     @Column(name = "hashed_password")
     private String hashedPassword;
 
+    @Column(nullable = false)
+    private String color;
+
     public Long getId() {
         return id;
     }
@@ -56,5 +59,13 @@ public class User {
 
     public void setHashedPassword(String hashedPassword) {
         this.hashedPassword = hashedPassword;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 }

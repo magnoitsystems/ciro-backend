@@ -29,6 +29,11 @@ public class UserService {
         newUser.setLastname(dto.getLastname());
         newUser.setUsername(dto.getUsername());
 
+        String userColor = (dto.getColor() != null && !dto.getColor().trim().isEmpty())
+                ? dto.getColor()
+                : "#9E9E9E";
+        newUser.setColor(userColor);
+
         String hashedPassword = passwordService.hashPassword(dto.getPassword());
         newUser.setHashedPassword(hashedPassword);
 

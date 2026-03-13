@@ -6,6 +6,7 @@ public class UserCreateDTO {
     private String lastname;
     private String username;
     private String password;
+    private String color;
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -18,4 +19,7 @@ public class UserCreateDTO {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
 }

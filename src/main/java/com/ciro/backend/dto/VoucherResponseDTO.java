@@ -7,7 +7,7 @@ import java.time.LocalDate;
 public class VoucherResponseDTO {
     private Long voucherId;
     private LocalDate date;
-    private BigDecimal totalAmountPesos;   // ¡NUEVO!
+    private BigDecimal totalAmountPesos;
     private BigDecimal totalAmountDollars;
 
     public VoucherResponseDTO(Long voucherId, LocalDate date, BigDecimal totalAmountPesos, BigDecimal totalAmountDollars) {
