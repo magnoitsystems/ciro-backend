@@ -7,7 +7,6 @@ import java.time.LocalDate;
 public class BillResponseDTO {
     private Long id;
     private String entityName;
-
     private Long employeeId;
     private String employeeFullName;
     private Long supplierId;
@@ -21,7 +20,6 @@ public class BillResponseDTO {
     private OriginType from;
     private BillType billType;
 
-    // Constructor actualizado
     public BillResponseDTO(Long id, String entityName, Long employeeId, String employeeFullName,
                            Long supplierId, String supplierFullName, LocalDate billDate,
                            BigDecimal amount, String description, BillStatus status,

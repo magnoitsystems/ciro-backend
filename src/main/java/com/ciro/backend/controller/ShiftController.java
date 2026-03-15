@@ -24,7 +24,7 @@ public class ShiftController {
         return new ResponseEntity<>(shiftDTOs, HttpStatus.OK);
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<ShiftDTO> getShift(@PathVariable Long id) {
         ShiftDTO shiftDTO = shiftService.getShiftById(id);
 
@@ -45,7 +45,7 @@ public class ShiftController {
         return ResponseEntity.ok(shifts);
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ShiftDTO> deleteShift(@PathVariable Long id) {
         shiftService.deleteShift(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

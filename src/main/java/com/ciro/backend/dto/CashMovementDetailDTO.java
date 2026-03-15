@@ -15,9 +15,7 @@ public class CashMovementDetailDTO {
     private CashMovementType type;
     private String observations;
     private Long doctorId;
-
     private Object relatedEntity;
-
     private List<PercentageSplitDTO> suggestedSplits;
 
     public static class PercentageSplitDTO {

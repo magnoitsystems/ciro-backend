@@ -37,7 +37,7 @@ public class CurrentAccountController {
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<CurrentAccountResponseDTO> getPatientCurrentAccount(
             @PathVariable Long patientId,
-            @RequestParam(required = false) CurrentAccountType type) { // ¡El nuevo parámetro!
+            @RequestParam(required = false) CurrentAccountType type) {
 
         CurrentAccountResponseDTO account = currentAccountService.getPatientCurrentAccount(patientId, type);
         return ResponseEntity.ok(account);
