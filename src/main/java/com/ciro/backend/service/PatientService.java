@@ -141,10 +141,11 @@ public class PatientService {
         return mapToDTO(updatedPatient);
     }
 
-    public void deletePatient(Long id){
-        if(id >= 0){
-            patientRepository.deleteById(id);
+    public void deletePatient(Long id) {
+        if (!patientRepository.existsById(id)) {
+            throw new ResourceNotFoundException("No se encontró el paciente con ID: " + id);
         }
+        patientRepository.deleteById(id);
     }
 
     @Transactional
