@@ -35,7 +35,7 @@ public class PatientService {
     private CurrentAccountRepository currentAccountRepository;
 
     @Transactional
-    public Patient createPatient(PatientDTO dto) {
+    public PatientResponseDTO createPatient(PatientCreateDTO dto) {
         if (patientRepository.existsByDni(dto.getDni())) {
             throw new DuplicateResourceException("El paciente con el DNI " + dto.getDni() + " ya existe en el sistema");
         }
@@ -67,49 +67,29 @@ public class PatientService {
         newPatient.setObservations(dto.getObservations());
         newPatient.setCreatedBy(creator);
 
-        return patientRepository.save(newPatient);
+        Patient savedPatient = patientRepository.save(newPatient);
+        return mapToResponseDTO(savedPatient);
     }
 
     private void createTask(TaskDTO automaticTaskDTO) {
         taskService.save(automaticTaskDTO, null);
     }
 
-    public List<PatientDTO> getAllPatients() {
+    public List<PatientResponseDTO> getAllPatients() {
         List<Patient> patients = patientRepository.findAll();
 
         return patients.stream()
-                .map(this::mapToDTO)
+                .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    private PatientDTO mapToDTO(Patient patient) {
-        PatientDTO dto = new PatientDTO();
-
-        dto.setFullName(patient.getFullName());
-        dto.setAddress(patient.getAddress());
-        dto.setCity(patient.getCity());
-        dto.setPhone(patient.getPhone());
-        dto.setBirthDate(patient.getBirthDate());
-        dto.setDocumentType(patient.getDocumentType());
-        dto.setDni(patient.getDni());
-        dto.setObraSocial(patient.getObraSocial());
-        dto.setFrom(patient.getFrom());
-        dto.setObservations(patient.getObservations());
-
-        if (patient.getCreatedBy() != null) {
-            dto.setCreatedById(patient.getCreatedBy().getId());
-        }
-
-        return dto;
-    }
-
-    public PatientDTO getPatientById(Long id) {
+    public PatientResponseDTO getPatientById(Long id) {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("El paciente con ID "+ id  +" no existe"));
-        return mapToDTO(patient);
+        return mapToResponseDTO(patient);
     }
 
-    public List<PatientDTO> searchPatients(String dni, String fullName, String city) {
+    public List<PatientResponseDTO> searchPatients(String dni, String fullName, String city) {
         // si no se enviaron todos los parámetros enviamos vacío para que no rompa
         String safeDni = (dni != null) ? dni : "";
         String safeFullName = (fullName != null) ? fullName : "";
@@ -118,12 +98,12 @@ public class PatientService {
         List<Patient> patients = patientRepository.findByFilters(safeDni, safeFullName, safeCity);
 
         return patients.stream()
-                .map(this::mapToDTO)
+                .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public PatientDTO updatePatient(Long id, PatientUpdateDTO updateDTO) {
+    public PatientResponseDTO updatePatient(Long id, PatientUpdateDTO updateDTO) {
         Patient existingPatient = patientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró el paciente con ID: " + id));
 
@@ -138,7 +118,7 @@ public class PatientService {
 
         Patient updatedPatient = patientRepository.save(existingPatient);
 
-        return mapToDTO(updatedPatient);
+        return mapToResponseDTO(updatedPatient);
     }
 
     public void deletePatient(Long id) {
@@ -174,11 +154,11 @@ public class PatientService {
         labelRepository.findById(labelId)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró el label con ID "+ labelId));
 
-        List<LabelPatient> relations =
-                labelPatientRepository.findLabelPatientByLabel(labelId);
+        List<LabelPatient> relations = labelPatientRepository.findLabelPatientByLabel(labelId);
 
-        List<Patient> patients = relations.stream()
+        List<PatientResponseDTO> patients = relations.stream()
                 .map(LabelPatient::getPatient)
+                .map(this::mapToResponseDTO)
                 .toList();
 
         StatisticsDTO statisticsDTO = new StatisticsDTO();
@@ -227,5 +207,28 @@ public class PatientService {
         }
 
         return debtors;
+    }
+
+    // EL MAPPER ESTRELLA
+    private PatientResponseDTO mapToResponseDTO(Patient patient) {
+        PatientResponseDTO dto = new PatientResponseDTO();
+        dto.setId(patient.getId());
+        dto.setFullName(patient.getFullName());
+        dto.setAddress(patient.getAddress());
+        dto.setCity(patient.getCity());
+        dto.setPhone(patient.getPhone());
+        dto.setBirthDate(patient.getBirthDate());
+        dto.setDocumentType(patient.getDocumentType());
+        dto.setDni(patient.getDni());
+        dto.setObraSocial(patient.getObraSocial());
+        dto.setFrom(patient.getFrom());
+        dto.setObservations(patient.getObservations());
+
+        if (patient.getCreatedBy() != null) {
+            dto.setCreatedById(patient.getCreatedBy().getId());
+            dto.setCreatedByName(patient.getCreatedBy().getName() + " " + patient.getCreatedBy().getLastname());
+        }
+
+        return dto;
     }
 }

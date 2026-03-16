@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 public class StatisticsDTO {
     private int count;
-    private List<Patient> patients;
+    private List<PatientResponseDTO> patients;
 
     public int getCount() {
         return count;
@@ -16,11 +16,11 @@ public class StatisticsDTO {
         this.count = count;
     }
 
-    public List<Patient> getPatients() {
+    public List<PatientResponseDTO> getPatients() {
         return patients;
     }
 
-    public void setPatients(List<Patient> patients) {
+    public void setPatients(List<PatientResponseDTO> patients) {
         this.patients = patients;
     }
 }

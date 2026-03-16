@@ -19,46 +19,41 @@ public class PatientController {
     private PatientService patientService;
 
     @PostMapping
-    public ResponseEntity<Patient> createPatient(@RequestBody PatientDTO patientDTO) {
-        Patient newPatient = patientService.createPatient(patientDTO);
+    public ResponseEntity<PatientResponseDTO> createPatient(@RequestBody PatientCreateDTO patientDTO) {
+        PatientResponseDTO newPatient = patientService.createPatient(patientDTO);
         return new ResponseEntity<>(newPatient, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<List<PatientDTO>> getAllPatients() {
-        List<PatientDTO> patients = patientService.getAllPatients();
-        return ResponseEntity.ok(patients);
+    public ResponseEntity<List<PatientResponseDTO>> getAllPatients() {
+        return ResponseEntity.ok(patientService.getAllPatients());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PatientDTO> getPatientById(@PathVariable Long id) {
-        PatientDTO patient = patientService.getPatientById(id);
-        return ResponseEntity.ok(patient);
+    public ResponseEntity<PatientResponseDTO> getPatientById(@PathVariable Long id) {
+        return ResponseEntity.ok(patientService.getPatientById(id));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<PatientDTO>> searchPatients(
+    public ResponseEntity<List<PatientResponseDTO>> searchPatients(
             @RequestParam(required = false) String dni,
             @RequestParam(required = false) String fullName,
             @RequestParam(required = false) String city
     ) {
-        List<PatientDTO> results = patientService.searchPatients(dni, fullName, city);
-        return ResponseEntity.ok(results);
+        return ResponseEntity.ok(patientService.searchPatients(dni, fullName, city));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PatientDTO> updatePatient(
+    public ResponseEntity<PatientResponseDTO> updatePatient(
             @PathVariable Long id,
             @RequestBody PatientUpdateDTO updateDTO) {
-
-        PatientDTO updatedPatient = patientService.updatePatient(id, updateDTO);
-        return ResponseEntity.ok(updatedPatient);
+        return ResponseEntity.ok(patientService.updatePatient(id, updateDTO));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePatient(@PathVariable Long id) {
         patientService.deletePatient(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build(); // 204 No Content
     }
 
     @PostMapping("/{patientId}/labels/{labelId}")
