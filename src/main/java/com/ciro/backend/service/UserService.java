@@ -3,6 +3,7 @@ package com.ciro.backend.service;
 import com.ciro.backend.dto.UserCreateDTO;
 import com.ciro.backend.dto.UserResponseDTO;
 import com.ciro.backend.entity.User;
+import com.ciro.backend.enums.Role;
 import com.ciro.backend.exception.DuplicateResourceException;
 import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.UserRepository;
@@ -41,6 +42,7 @@ public class UserService {
 
         String hashedPassword = passwordService.hashPassword(dto.getPassword());
         newUser.setHashedPassword(hashedPassword);
+        newUser.setRole(Role.USER);
 
         User savedUser = userRepository.save(newUser);
         return mapToResponseDTO(savedUser);
@@ -66,6 +68,22 @@ public class UserService {
         dto.setLastname(user.getLastname());
         dto.setUsername(user.getUsername());
         dto.setColor(user.getColor());
+        dto.setRole(user.getRole());
         return dto;
+    }
+
+    @Transactional
+    public UserResponseDTO toggleUserRole(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el usuario con ID: " + id));
+
+        if (user.getRole() == Role.ADMIN) {
+            user.setRole(Role.USER);
+        } else {
+            user.setRole(Role.ADMIN);
+        }
+
+        User updatedUser = userRepository.save(user);
+        return mapToResponseDTO(updatedUser);
     }
 }

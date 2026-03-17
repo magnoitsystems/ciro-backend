@@ -1,5 +1,6 @@
 package com.ciro.backend.entity;
 
+import com.ciro.backend.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,6 +25,9 @@ public class User {
 
     @Column(nullable = false)
     private String color;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     public Long getId() {
         return id;
@@ -67,5 +71,13 @@ public class User {
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

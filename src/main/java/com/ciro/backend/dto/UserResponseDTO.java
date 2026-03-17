@@ -1,11 +1,14 @@
 package com.ciro.backend.dto;
 
+import com.ciro.backend.enums.Role;
+
 public class UserResponseDTO {
     private Long id;
     private String name;
     private String lastname;
     private String username;
     private String color;
+    private Role role;
 
     public Long getId() {
         return id;
@@ -45,5 +48,13 @@ public class UserResponseDTO {
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }
