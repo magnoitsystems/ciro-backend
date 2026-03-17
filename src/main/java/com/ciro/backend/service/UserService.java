@@ -1,12 +1,17 @@
 package com.ciro.backend.service;
 
 import com.ciro.backend.dto.UserCreateDTO;
+import com.ciro.backend.dto.UserResponseDTO;
 import com.ciro.backend.entity.User;
 import com.ciro.backend.exception.DuplicateResourceException;
+import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -18,7 +23,7 @@ public class UserService {
     private PasswordService passwordService;
 
     @Transactional
-    public User createUser(UserCreateDTO dto) {
+    public UserResponseDTO createUser(UserCreateDTO dto) {
 
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new DuplicateResourceException("El username "+ dto.getUsername()+" ya está en uso");
@@ -37,6 +42,30 @@ public class UserService {
         String hashedPassword = passwordService.hashPassword(dto.getPassword());
         newUser.setHashedPassword(hashedPassword);
 
-        return userRepository.save(newUser);
+        User savedUser = userRepository.save(newUser);
+        return mapToResponseDTO(savedUser);
+    }
+
+    public List<UserResponseDTO> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new ResourceNotFoundException("No se encontró el usuario con ID: " + id);
+        }
+        userRepository.deleteById(id);
+    }
+
+    private UserResponseDTO mapToResponseDTO(User user) {
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setLastname(user.getLastname());
+        dto.setUsername(user.getUsername());
+        dto.setColor(user.getColor());
+        return dto;
     }
 }
