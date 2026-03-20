@@ -28,6 +28,10 @@ public class PatientService {
     @Autowired
     private LabelPatientService labelPatientService;
     @Autowired
+    private LabelRepository labelRepository;
+    @Autowired
+    private LabelPatientRepository labelPatientRepository;
+    @Autowired
     private TaskService taskService;
     @Autowired
     private CurrentAccountRepository currentAccountRepository;
@@ -145,44 +149,6 @@ public class PatientService {
         patientRepository.deleteById(id);
     }
 
-    @Transactional
-    public void assignLabel(Long patientId, Long labelId) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el paciente con ID "+ patientId));
-
-        Label label = labelRepository.findById(labelId)
-                .orElseThrow(() -> new RuntimeException("Label no encontrado"));
-
-        LabelPatient alreadyExists = labelPatientRepository.existsByPatientIdAndLabelId(patientId, labelId);
-
-        if (alreadyExists != null) {
-            throw new DuplicateResourceException("El paciente ya tiene este label");
-        }
-
-        LabelPatient patientLabel = new LabelPatient();
-        patientLabel.setPatient(patient);
-        patientLabel.setLabel(label);
-
-        labelPatientRepository.save(patientLabel);
-    }
-
-    public StatisticsDTO getPatientsAndStatistics(Long labelId) {
-        labelRepository.findById(labelId)
-                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el label con ID "+ labelId));
-
-        List<LabelPatient> relations = labelPatientRepository.findLabelPatientByLabel(labelId);
-
-        List<PatientResponseDTO> patients = relations.stream()
-                .map(LabelPatient::getPatient)
-                .map(this::mapToResponseDTO)
-                .toList();
-
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
-        statisticsDTO.setCount(patients.size());
-        statisticsDTO.setPatients(patients);
-
-        return statisticsDTO;
-    }
 
     public List<PatientDebtorDTO> getDebtorPatients() {
         Label deudorLabel = labelRepository.findByLabel("Deudor").orElse(null);

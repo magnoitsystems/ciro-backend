@@ -57,4 +57,14 @@ public class LabelPatientController {
 
         return ResponseEntity.ok(newLabelPatient);
     }
+
+    @PostMapping("patient/{patientId}/label/{labelId}")
+    public ResponseEntity<LabelPatient> assignLabel(
+            @PathVariable Long patientId,
+            @PathVariable Long labelId) {
+
+        labelPatientService.assignLabel(patientId, labelId);
+
+        return ResponseEntity.ok().build();
+    }
 }

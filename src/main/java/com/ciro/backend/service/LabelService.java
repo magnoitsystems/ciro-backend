@@ -1,8 +1,14 @@
 package com.ciro.backend.service;
 
 import com.ciro.backend.entity.Label;
+import com.ciro.backend.entity.LabelPatient;
+import com.ciro.backend.entity.Patient;
+import com.ciro.backend.exception.DuplicateResourceException;
 import com.ciro.backend.exception.ResourceNotFoundException;
+import com.ciro.backend.repository.LabelPatientRepository;
 import com.ciro.backend.repository.LabelRepository;
+import com.ciro.backend.repository.PatientRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

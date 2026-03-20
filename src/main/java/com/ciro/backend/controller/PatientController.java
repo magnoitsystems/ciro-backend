@@ -56,15 +56,6 @@ public class PatientController {
         return ResponseEntity.noContent().build(); // 204 No Content
     }
 
-    @PostMapping("/{patientId}/labels/{labelId}")
-    public ResponseEntity<LabelPatient> assignLabel(
-            @PathVariable Long patientId,
-            @PathVariable Long labelId) {
-
-        patientService.assignLabel(patientId, labelId);
-
-        return ResponseEntity.ok().build();
-    }
 
     @GetMapping("/statistics/{label}")
     public ResponseEntity<StatisticsDTO> getStatistics(@PathVariable Long label) {
