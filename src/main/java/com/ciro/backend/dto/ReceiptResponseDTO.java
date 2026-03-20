@@ -43,8 +43,6 @@ public class ReceiptResponseDTO {
     public CurrencyType getCurrencyType() { return currencyType; }
     public BigDecimal getExchangeRate() { return exchangeRate; }
     public BigDecimal getConvertedAmount() { return convertedAmount; }
-
-    // ¡NUEVOS GETTERS!
     public String getPatientFullName() { return patientFullName; }
     public String getPatientDni() { return patientDni; }
 }

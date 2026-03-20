@@ -16,62 +16,24 @@ public class ReceiptCreateDTO {
     private Long userId;
     private BigDecimal exchangeRate;
     private PaymentMethod paymentMethod;
-
-    // Getter y Setter
-    public PaymentMethod getPaymentMethod() {
-        return paymentMethod;
-    }
-    public void setPaymentMethod(PaymentMethod paymentMethod) {
-        this.paymentMethod = paymentMethod;
-    }
+    private boolean payDollarDebtWithPesos;
+    
+    public boolean isPayDollarDebtWithPesos() { return payDollarDebtWithPesos; }
+    public void setPayDollarDebtWithPesos(boolean payDollarDebtWithPesos) { this.payDollarDebtWithPesos = payDollarDebtWithPesos; }
+    public PaymentMethod getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(PaymentMethod paymentMethod) { this.paymentMethod = paymentMethod; }
     public BigDecimal getExchangeRate() { return exchangeRate; }
     public void setExchangeRate(BigDecimal exchangeRate) { this.exchangeRate = exchangeRate; }
-
-    public LocalDate getReceiptDate() {
-        return receiptDate;
-    }
-
-    public void setReceiptDate(LocalDate receiptDate) {
-        this.receiptDate = receiptDate;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getObservations() {
-        return observations;
-    }
-
-    public void setObservations(String observations) {
-        this.observations = observations;
-    }
-
-    public CurrencyType getCurrencyType() {
-        return currencyType;
-    }
-
-    public void setCurrencyType(CurrencyType currencyType) {
-        this.currencyType = currencyType;
-    }
-
-    public Long getPatientId() {
-        return patientId;
-    }
-
-    public void setPatientId(Long patientId) {
-        this.patientId = patientId;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
+    public LocalDate getReceiptDate() { return receiptDate; }
+    public void setReceiptDate(LocalDate receiptDate) { this.receiptDate = receiptDate; }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
+    public String getObservations() { return observations; }
+    public void setObservations(String observations) { this.observations = observations; }
+    public CurrencyType getCurrencyType() { return currencyType; }
+    public void setCurrencyType(CurrencyType currencyType) { this.currencyType = currencyType; }
+    public Long getPatientId() { return patientId; }
+    public void setPatientId(Long patientId) { this.patientId = patientId; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 }

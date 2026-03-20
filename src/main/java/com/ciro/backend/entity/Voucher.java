@@ -26,6 +26,13 @@ public class Voucher {
     @JoinColumn(name = "id_user")
     private User user;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "currency_type", nullable = false)
+    private CurrencyType currencyType;
+
+    public CurrencyType getCurrencyType() { return currencyType; }
+    public void setCurrencyType(CurrencyType currencyType) { this.currencyType = currencyType; }
+
     public Long getId() {
         return id;
     }

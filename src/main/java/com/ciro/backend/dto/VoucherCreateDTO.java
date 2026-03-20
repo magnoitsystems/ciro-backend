@@ -9,6 +9,7 @@ public class VoucherCreateDTO {
     private Long userId;
     private LocalDate voucherDate;
     private String observations;
+    private CurrencyType currencyType;
     private List<VoucherDetailDTO> details;
 
     public Long getPatientId() { return patientId; }
@@ -21,4 +22,6 @@ public class VoucherCreateDTO {
     public void setObservations(String observations) { this.observations = observations; }
     public List<VoucherDetailDTO> getDetails() { return details; }
     public void setDetails(List<VoucherDetailDTO> details) { this.details = details; }
+    public CurrencyType getCurrencyType() { return currencyType; }
+    public void setCurrencyType(CurrencyType currencyType) { this.currencyType = currencyType; }
 }

@@ -43,19 +43,17 @@ public class ReceiptService {
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
-        BigDecimal targetAmount = dto.getAmount();
-        CurrencyType targetCurrency = dto.getCurrencyType();
         BigDecimal convertedAmount = null;
 
         boolean isPesoToDollarConversion = (dto.getCurrencyType() == CurrencyType.PESOS
+                && dto.isPayDollarDebtWithPesos()
                 && dto.getExchangeRate() != null
                 && dto.getExchangeRate().compareTo(BigDecimal.ZERO) > 0);
 
         if (isPesoToDollarConversion) {
             convertedAmount = dto.getAmount().divide(dto.getExchangeRate(), 2, RoundingMode.HALF_UP);
-
-            targetAmount = convertedAmount;
-            targetCurrency = CurrencyType.DOLARES;
+        } else if (dto.isPayDollarDebtWithPesos() && (dto.getExchangeRate() == null || dto.getExchangeRate().compareTo(BigDecimal.ZERO) <= 0)) {
+            throw new BadRequestException("Debe ingresar la cotización (Exchange Rate) para saldar deuda en dólares con pesos.");
         }
 
         Receipt receipt = new Receipt();
@@ -93,7 +91,6 @@ public class ReceiptService {
         BigDecimal newBalanceDollars = prevBalanceDollars;
 
         if (isPesoToDollarConversion) {
-            txPesos = dto.getAmount();
             txDollars = convertedAmount;
             newBalanceDollars = prevBalanceDollars.subtract(convertedAmount);
         } else {

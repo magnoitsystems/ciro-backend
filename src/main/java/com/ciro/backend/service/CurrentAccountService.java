@@ -2,7 +2,6 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.*;
 import com.ciro.backend.entity.*;
-import com.ciro.backend.enums.CurrencyType;
 import com.ciro.backend.enums.CurrentAccountType;
 import com.ciro.backend.exception.BadRequestException;
 import com.ciro.backend.exception.ResourceNotFoundException;
@@ -58,9 +57,7 @@ public class CurrentAccountService {
             CurrentAccountMovementDTO mov = new CurrentAccountMovementDTO();
             mov.setId(acc.getId());
             mov.setType(acc.getType());
-
             mov.setCanceled(acc.getCanceled() != null ? acc.getCanceled() : false);
-
             mov.setTransactionAmountPesos(acc.getTransactionAmountPesos() != null ? acc.getTransactionAmountPesos() : BigDecimal.ZERO);
             mov.setTransactionAmountDollars(acc.getTransactionAmountDollars() != null ? acc.getTransactionAmountDollars() : BigDecimal.ZERO);
             mov.setBalancePesos(acc.getBalancePesos() != null ? acc.getBalancePesos() : BigDecimal.ZERO);
@@ -69,18 +66,17 @@ public class CurrentAccountService {
             if (acc.getType() == CurrentAccountType.VOUCHER && acc.getVoucher() != null) {
                 Voucher v = acc.getVoucher();
                 mov.setDate(v.getVoucherDate());
-
                 String obs = v.getObservations() != null ? v.getObservations() : "Sin observaciones";
-                mov.setDetail("Comprobante #" + v.getId() + " - " + obs);
+                mov.setDetail("Comprobante #" + v.getId() + " - " + obs + " (" + v.getCurrencyType() + ")");
 
             } else if (acc.getType() == CurrentAccountType.RECEIPT && acc.getReceipt() != null) {
                 Receipt r = acc.getReceipt();
                 mov.setDate(r.getReceiptDate());
 
-                if (r.getConvertedAmount() != null) {
-                    mov.setDetail("Recibo #" + r.getId() + " - Pagó $" + r.getAmount() + " PESOS (Cot: " + r.getExchangeRate() + ") -> Convertido a U$D");
+                if (r.getConvertedAmount() != null && r.getConvertedAmount().compareTo(BigDecimal.ZERO) > 0) {
+                    mov.setDetail("Recibo #" + r.getId() + " - Pagó $" + r.getAmount() + " PESOS (Cot: $" + r.getExchangeRate() + ") para saldar U$D " + r.getConvertedAmount());
                 } else {
-                    mov.setDetail("Recibo #" + r.getId() + " - Pago recibido en " + r.getCurrencyType());
+                    mov.setDetail("Recibo #" + r.getId() + " - Pago de " + r.getCurrencyType());
                 }
             }
 
@@ -93,19 +89,23 @@ public class CurrentAccountService {
 
     @Transactional
     public void cancelPatientDebt(Long patientId) {
+
         CurrentAccount lastRecord = currentAccountRepository.findTopByPatientIdOrderByIdDesc(patientId)
                 .orElseThrow(() -> new BadRequestException("El paciente no tiene movimientos en su cuenta corriente."));
 
         if (lastRecord.getCanceled() != null && lastRecord.getCanceled()) {
-            throw new BadRequestException("La deuda ya se encuentra cancelada.");
+            throw new BadRequestException("La deuda ya se encuentra cancelada o en cero.");
         }
 
         lastRecord.setCanceled(true);
+        lastRecord.setBalancePesos(BigDecimal.ZERO);
+        lastRecord.setBalanceDollars(BigDecimal.ZERO);
         currentAccountRepository.save(lastRecord);
 
         updateDebtorLabel(lastRecord.getPatient());
     }
 
+    @Transactional
     public void updateDebtorLabel(Patient patient) {
         CurrentAccount lastRecord = currentAccountRepository.findTopByPatientIdOrderByIdDesc(patient.getId()).orElse(null);
 
@@ -128,14 +128,14 @@ public class CurrentAccountService {
 
         LabelPatient alreadyHasLabel = labelPatientRepository.existsByPatientIdAndLabelId(patient.getId(), debtorLabel.getId());
 
-        if (hasDebt && alreadyHasLabel == null) {
+        if (hasDebt && alreadyHasLabel != null) {
             LabelPatient newLabelPatient = new LabelPatient();
             newLabelPatient.setPatient(patient);
             newLabelPatient.setLabel(debtorLabel);
             labelPatientRepository.save(newLabelPatient);
         }
-        else if (!hasDebt && alreadyHasLabel != null) {
-            labelPatientRepository.deleteByPatientAndLabel(patient, debtorLabel);
+        else if (!hasDebt && alreadyHasLabel!= null) {
+            labelPatientRepository.deleteByPatientAndLabel(lastRecord.getPatient(), debtorLabel);
         }
     }
 }

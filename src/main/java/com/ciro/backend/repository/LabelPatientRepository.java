@@ -25,4 +25,5 @@ public interface LabelPatientRepository extends JpaRepository<LabelPatient, Long
     @Modifying
     @Transactional
     void deleteByPatientAndLabel(Patient patient, Label label);
+
 }
