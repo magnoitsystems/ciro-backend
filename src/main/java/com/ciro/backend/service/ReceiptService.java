@@ -130,7 +130,9 @@ public class ReceiptService {
                 savedReceipt.getAmount(),
                 savedReceipt.getCurrencyType(),
                 savedReceipt.getExchangeRate(),
-                savedReceipt.getConvertedAmount()
+                savedReceipt.getConvertedAmount(),
+                savedReceipt.getPatient().getFullName(),
+                savedReceipt.getPatient().getDni()
         );
     }
 
@@ -149,7 +151,9 @@ public class ReceiptService {
                         r.getAmount(),
                         r.getCurrencyType(),
                         r.getExchangeRate(),
-                        r.getConvertedAmount()
+                        r.getConvertedAmount(),
+                        r.getPatient().getFullName(),
+                        r.getPatient().getDni()
                 ))
                 .toList();
     }
@@ -158,6 +162,8 @@ public class ReceiptService {
 
         Receipt receipt = receiptRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recibo no encontrado"));
+;
+        String dni = receipt.getPatient().getDni();
 
         return new ReceiptResponseDTO(
                 receipt.getId(),
@@ -165,7 +171,9 @@ public class ReceiptService {
                 receipt.getAmount(),
                 receipt.getCurrencyType(),
                 receipt.getExchangeRate(),
-                receipt.getConvertedAmount()
+                receipt.getConvertedAmount(),
+                receipt.getPatient().getFullName(),
+                receipt.getPatient().getDni()
         );
     }
 }

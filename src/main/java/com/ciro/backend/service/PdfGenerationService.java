@@ -49,7 +49,7 @@ public class PdfGenerationService {
             title.setSpacingAfter(30);
             document.add(title);
 
-            PdfPTable table = new PdfPTable(2); // 2 columnas
+            PdfPTable table = new PdfPTable(2);
             table.setWidthPercentage(100);
             table.setSpacingBefore(10f);
             table.setSpacingAfter(10f);
@@ -59,6 +59,12 @@ public class PdfGenerationService {
 
             table.addCell(new Phrase("Fecha de emisión:", boldFont));
             table.addCell(new Phrase(receipt.getReceiptDate().toString(), normalFont));
+
+            table.addCell(new Phrase("Paciente:", boldFont));
+            table.addCell(new Phrase(receipt.getPatientFullName(), normalFont));
+
+            table.addCell(new Phrase("DNI / Documento:", boldFont));
+            table.addCell(new Phrase(receipt.getPatientDni(), normalFont));
 
             table.addCell(new Phrase("Monto Recibido:", boldFont));
             table.addCell(new Phrase("$" + receipt.getAmount() + " " + receipt.getCurrencyType(), normalFont));
