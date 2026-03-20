@@ -1,10 +1,7 @@
 package com.ciro.backend.dto;
 
-import com.ciro.backend.entity.Patient;
-import lombok.Data;
-
 import java.util.List;
-public class StatisticsDTO {
+public class PatientCohortStatDTO {
     private int count;
     private List<PatientResponseDTO> patients;
 

@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @Service
 public class LabelPatientService {
+
     @Autowired
     private LabelPatientRepository labelPatientRepository;
 
@@ -51,4 +52,5 @@ public class LabelPatientService {
 
         return labelPatientRepository.existsByPatientIdAndLabelId(patientId, labelId);
     }
+
 }

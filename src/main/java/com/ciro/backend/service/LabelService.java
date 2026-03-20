@@ -41,4 +41,17 @@ public class LabelService {
         }
         return null;
     }
+
+    public Label getOrCreateLabel(String labelText) {
+        if (labelText == null || labelText.trim().isEmpty()) {
+            return null;
+        }
+        String cleanLabel = labelText.trim();
+        return labelRepository.findByLabel(cleanLabel)
+                .orElseGet(() -> {
+                    Label newLabel = new Label();
+                    newLabel.setLabel(cleanLabel);
+                    return labelRepository.save(newLabel);
+                });
+    }
 }

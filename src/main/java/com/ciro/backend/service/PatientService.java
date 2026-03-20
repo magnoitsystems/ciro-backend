@@ -24,11 +24,9 @@ public class PatientService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private LabelRepository labelRepository;
+    private LabelService labelService;
     @Autowired
-    private LabelPatientRepository labelPatientRepository;
-    @Autowired
-    private PracticeService practiceService;
+    private LabelPatientService labelPatientService;
     @Autowired
     private TaskService taskService;
     @Autowired
@@ -52,22 +50,42 @@ public class PatientService {
         newPatient.setDocumentType(dto.getDocumentType());
         newPatient.setDni(dto.getDni());
         newPatient.setObraSocial(dto.getObraSocial());
+        newPatient.setObservations(dto.getObservations());
+        newPatient.setCreatedBy(creator);
 
         if (dto.getFrom() != null) {
             newPatient.setFrom(dto.getFrom());
+        }
+
+        Patient savedPatient = patientRepository.save(newPatient);
+
+        if (dto.getCity() != null && !dto.getCity().trim().isEmpty()) {
+            Label cityLabel = labelService.getOrCreateLabel(dto.getCity());
+
+            LabelPatient lpCity = new LabelPatient();
+            lpCity.setPatient(savedPatient);
+            lpCity.setLabel(cityLabel);
+            labelPatientService.assignLabelToPatient(lpCity);
+        }
+
+        if (dto.getFrom() != null) {
+            Label fromLabel = labelService.getOrCreateLabel(dto.getFrom().name());
+
+            LabelPatient lpFrom = new LabelPatient();
+            lpFrom.setPatient(savedPatient);
+            lpFrom.setLabel(fromLabel);
+            labelPatientService.assignLabelToPatient(lpFrom);
+
         } else {
             TaskDTO automaticTaskDTO = new TaskDTO();
             automaticTaskDTO.setUser(creator);
-            automaticTaskDTO.setDescription(newPatient.getDni());
+            automaticTaskDTO.setDescription("DNI: " + savedPatient.getDni());
             automaticTaskDTO.setStatus(TaskStatus.PENDING);
             automaticTaskDTO.setPriority(TaskPriority.LOW);
             automaticTaskDTO.setTitle("Buscar información de cómo nos conocieron");
             createTask(automaticTaskDTO);
         }
-        newPatient.setObservations(dto.getObservations());
-        newPatient.setCreatedBy(creator);
 
-        Patient savedPatient = patientRepository.save(newPatient);
         return mapToResponseDTO(savedPatient);
     }
 
@@ -90,7 +108,6 @@ public class PatientService {
     }
 
     public List<PatientResponseDTO> searchPatients(String dni, String fullName, String city) {
-        // si no se enviaron todos los parámetros enviamos vacío para que no rompa
         String safeDni = (dni != null) ? dni : "";
         String safeFullName = (fullName != null) ? fullName : "";
         String safeCity = (city != null) ? city : "";
@@ -136,7 +153,6 @@ public class PatientService {
         Label label = labelRepository.findById(labelId)
                 .orElseThrow(() -> new RuntimeException("Label no encontrado"));
 
-        // evitar duplicados
         LabelPatient alreadyExists = labelPatientRepository.existsByPatientIdAndLabelId(patientId, labelId);
 
         if (alreadyExists != null) {
@@ -209,7 +225,6 @@ public class PatientService {
         return debtors;
     }
 
-    // EL MAPPER ESTRELLA
     private PatientResponseDTO mapToResponseDTO(Patient patient) {
         PatientResponseDTO dto = new PatientResponseDTO();
         dto.setId(patient.getId());
