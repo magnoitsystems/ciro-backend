@@ -3,6 +3,8 @@ package com.ciro.backend.entity;
 import com.ciro.backend.enums.CurrencyType;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -29,6 +31,9 @@ public class Voucher {
     @Enumerated(EnumType.STRING)
     @Column(name = "currency_type", nullable = false)
     private CurrencyType currencyType;
+
+    @Column
+    private BigDecimal total_amount;
 
     public CurrencyType getCurrencyType() { return currencyType; }
     public void setCurrencyType(CurrencyType currencyType) { this.currencyType = currencyType; }
@@ -69,4 +74,11 @@ public class Voucher {
         this.user = user;
     }
 
+    public BigDecimal getTotal_amount() {
+        return total_amount;
+    }
+
+    public void setTotal_amount(BigDecimal total_amount) {
+        this.total_amount = total_amount;
+    }
 }
