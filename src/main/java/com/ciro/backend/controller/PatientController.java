@@ -57,13 +57,6 @@ public class PatientController {
     }
 
 
-    @GetMapping("/statistics/{label}")
-    public ResponseEntity<StatisticsDTO> getStatistics(@PathVariable Long label) {
-        StatisticsDTO statisticsDTO = patientService.getPatientsAndStatistics(label);
-
-        return ResponseEntity.ok(statisticsDTO);
-    }
-
     @GetMapping("/debtors")
     public ResponseEntity<List<PatientDebtorDTO>> getDebtorPatients() {
         List<PatientDebtorDTO> debtors = patientService.getDebtorPatients();
