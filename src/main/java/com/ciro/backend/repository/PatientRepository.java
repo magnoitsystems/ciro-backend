@@ -26,4 +26,13 @@ public interface PatientRepository extends JpaRepository<Patient, Long>, JpaSpec
 
     @Query("SELECT p FROM Patient p WHERE p.dni = :dni")
     Patient findByDni(@Param("dni") String dni);
+
+    @Query("SELECT COUNT(p) FROM Patient p")
+    long countTotalPatients();
+
+    @Query("SELECT p.from, COUNT(p) FROM Patient p WHERE p.from IS NOT NULL GROUP BY p.from")
+    List<Object[]> countPatientsByOrigin();
+
+    @Query("SELECT p.city, COUNT(p) FROM Patient p WHERE p.city IS NOT NULL AND p.city != '' GROUP BY p.city")
+    List<Object[]> countPatientsByCity();
 }
