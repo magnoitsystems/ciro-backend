@@ -74,8 +74,13 @@ public class VoucherService {
 
             CurrentAccount lastRecord = currentAccountRepository.findTopByPatientIdOrderByIdDesc(patient.getId()).orElse(null);
 
-            BigDecimal prevBalancePesos = (lastRecord != null && (lastRecord.getCanceled() == null || !lastRecord.getCanceled()) && lastRecord.getBalancePesos() != null) ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
-            BigDecimal prevBalanceDollars = (lastRecord != null && (lastRecord.getCanceled() == null || !lastRecord.getCanceled()) && lastRecord.getBalanceDollars() != null) ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
+            BigDecimal prevBalancePesos = BigDecimal.ZERO;
+            BigDecimal prevBalanceDollars = BigDecimal.ZERO;
+
+            if (lastRecord != null && (lastRecord.getCanceled() == null || !lastRecord.getCanceled())) {
+                prevBalancePesos = lastRecord.getBalancePesos() != null ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
+                prevBalanceDollars = lastRecord.getBalanceDollars() != null ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
+            }
 
             if (dto.getCurrencyType() == CurrencyType.PESOS) {
                 accountEntry.setTransactionAmountPesos(totalAmount);
