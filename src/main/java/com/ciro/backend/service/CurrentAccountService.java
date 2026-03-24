@@ -126,16 +126,17 @@ public class CurrentAccountService {
                     return labelRepository.save(newLabel);
                 });
 
-        LabelPatient alreadyHasLabel = labelPatientRepository.existsByPatientIdAndLabelId(patient.getId(), debtorLabel.getId());
+        LabelPatient existingRelation = labelPatientRepository.findByPatientIdAndLabelId(patient.getId(), debtorLabel.getId());
+        boolean alreadyHasLabel = (existingRelation != null);
 
-        if (hasDebt && alreadyHasLabel != null) {
+        if (hasDebt && !alreadyHasLabel) {
             LabelPatient newLabelPatient = new LabelPatient();
             newLabelPatient.setPatient(patient);
             newLabelPatient.setLabel(debtorLabel);
             labelPatientRepository.save(newLabelPatient);
         }
-        else if (!hasDebt && alreadyHasLabel!= null) {
-            labelPatientRepository.deleteByPatientAndLabel(lastRecord.getPatient(), debtorLabel);
+        else if (!hasDebt && alreadyHasLabel) {
+            labelPatientRepository.delete(existingRelation);
         }
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.jpa.repository.Modifying;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LabelPatientRepository extends JpaRepository<LabelPatient, Long> {
@@ -25,5 +26,7 @@ public interface LabelPatientRepository extends JpaRepository<LabelPatient, Long
     @Modifying
     @Transactional
     void deleteByPatientAndLabel(Patient patient, Label label);
+
+    Optional<LabelPatient> findByPatientIdAndLabelId (Long patientId, Long labelId);
 
 }

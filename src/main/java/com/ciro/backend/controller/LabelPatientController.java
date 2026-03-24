@@ -58,7 +58,7 @@ public class LabelPatientController {
         return ResponseEntity.ok(newLabelPatient);
     }
 
-    @PostMapping("patient/{patientId}/label/{labelId}")
+    @PostMapping("/patient/{patientId}/label/{labelId}")
     public ResponseEntity<LabelPatient> assignLabel(
             @PathVariable Long patientId,
             @PathVariable Long labelId) {

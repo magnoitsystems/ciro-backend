@@ -23,7 +23,7 @@ public class LabelController {
         return ResponseEntity.ok(labels);
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Label> findById(@PathVariable Long id) {
         Label label = labelService.findById(id);
 
@@ -37,14 +37,14 @@ public class LabelController {
         return ResponseEntity.ok(labelSaved);
     }
 
-    @PutMapping("{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Label> update(@PathVariable Long id, @RequestBody Label label) {
         Label labelSaved = labelService.update(label, id);
 
         return ResponseEntity.ok(labelSaved);
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Label> delete(@PathVariable Long id) {
         Label label = labelService.findById(id);
 

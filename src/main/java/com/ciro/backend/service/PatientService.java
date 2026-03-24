@@ -139,6 +139,30 @@ public class PatientService {
 
         Patient updatedPatient = patientRepository.save(existingPatient);
 
+        if (updateDTO.getCity() != null && !updateDTO.getCity().trim().isEmpty()) {
+            Label cityLabel = labelService.getOrCreateLabel(updateDTO.getCity());
+
+            LabelPatient existingLp = labelPatientService.findByPatientIdAndLabelId(updatedPatient.getId(), cityLabel.getId());
+            if (existingLp == null) {
+                LabelPatient lpCity = new LabelPatient();
+                lpCity.setPatient(updatedPatient);
+                lpCity.setLabel(cityLabel);
+                labelPatientService.assignLabelToPatient(lpCity);
+            }
+        }
+
+        if (updateDTO.getFrom() != null) {
+            Label fromLabel = labelService.getOrCreateLabel(updateDTO.getFrom().name());
+
+            LabelPatient existingLp = labelPatientService.findByPatientIdAndLabelId(updatedPatient.getId(), fromLabel.getId());
+            if (existingLp == null) {
+                LabelPatient lpFrom = new LabelPatient();
+                lpFrom.setPatient(updatedPatient);
+                lpFrom.setLabel(fromLabel);
+                labelPatientService.assignLabelToPatient(lpFrom);
+            }
+        }
+
         return mapToResponseDTO(updatedPatient);
     }
 
