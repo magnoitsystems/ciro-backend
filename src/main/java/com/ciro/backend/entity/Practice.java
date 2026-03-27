@@ -1,7 +1,5 @@
 package com.ciro.backend.entity;
 
-import com.ciro.backend.enums.SurgeryType;
-import com.ciro.backend.enums.ImplantType;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.math.BigDecimal;
@@ -25,12 +23,8 @@ public class Practice {
     private LocalDate practiceDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "surgery_type")
-    private SurgeryType surgeryType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "implant_type")
-    private ImplantType implantType;
+    @Column(name = "practice_type")
+    private String practiceType;
 
     private Boolean reimplantation;
 
@@ -64,22 +58,6 @@ public class Practice {
         this.practiceDate = practiceDate;
     }
 
-    public SurgeryType getSurgeryType() {
-        return surgeryType;
-    }
-
-    public void setSurgeryType(SurgeryType surgeryType) {
-        this.surgeryType = surgeryType;
-    }
-
-    public ImplantType getImplantType() {
-        return implantType;
-    }
-
-    public void setImplantType(ImplantType implantType) {
-        this.implantType = implantType;
-    }
-
     public Boolean getReimplantation() {
         return reimplantation;
     }
@@ -94,5 +72,17 @@ public class Practice {
 
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getPracticeType() {
+        return practiceType;
+    }
+
+    public void setPracticeType(String practiceType) {
+        this.practiceType = practiceType;
     }
 }

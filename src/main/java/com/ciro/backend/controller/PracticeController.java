@@ -2,16 +2,13 @@ package com.ciro.backend.controller;
 
 import com.ciro.backend.dto.PracticeDTO;
 import com.ciro.backend.entity.Practice;
-import com.ciro.backend.repository.PracticeRepository;
 import com.ciro.backend.service.PracticeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("api/v1/practices")
@@ -48,12 +45,12 @@ public class PracticeController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<PracticeDTO> deletePractice(@PathVariable Long id) {
-        PracticeDTO practice = practiceService.getPractice(id);
-
-        practiceService.deletePractice(id);
-
-        return ResponseEntity.ok(practice);
+    public ResponseEntity<String> deletePractice(@PathVariable Long id) {
+        String response = this.practiceService.deletePractice(id);
+        if (response != null) {
+            return ResponseEntity.status(500).body("Hubo un error al eliminar la práctica");
+        }
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/doctor/{id}")

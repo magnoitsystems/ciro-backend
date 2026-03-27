@@ -34,8 +34,7 @@ public class PracticeService {
         practice.setDoctor(doctor);
         practice.setPatient(patient);
         practice.setReimplantation(practiceDTO.getReimplantation());
-        practice.setImplantType(practiceDTO.getImplantType());
-        practice.setSurgeryType(practiceDTO.getSurgeryType());
+        practice.setPracticeType(practiceDTO.getPracticeType());
 
         return practiceRepository.save(practice);
     }
@@ -81,23 +80,13 @@ public class PracticeService {
                 practice.setReimplantation(practiceDTO.getReimplantation());
             }
 
-            if(practiceDTO.getImplantType() != null) {
-                practice.setImplantType(practiceDTO.getImplantType());
-            }
-
-            if(practiceDTO.getSurgeryType() != null) {
-                practice.setSurgeryType(practiceDTO.getSurgeryType());
+            if(practiceDTO.getPracticeType() != null) {
+                practice.setPracticeType(practiceDTO.getPracticeType());
             }
 
             return practiceRepository.save(practice);
         }
         return null;
-    }
-
-    public void deletePractice(Long id) {
-        if(id >= 0){
-            practiceRepository.deleteById(id);
-        }
     }
 
     public List<PracticeDTO> getPracticesByDoctor(Long id) {
@@ -132,9 +121,16 @@ public class PracticeService {
         practiceDTO.setDoctor(practice.getDoctor());
         practiceDTO.setPatient(practice.getPatient());
         practiceDTO.setReimplantation(practice.getReimplantation());
-        practiceDTO.setImplantType(practice.getImplantType());
-        practiceDTO.setSurgeryType(practice.getSurgeryType());
-
+        practiceDTO.setPracticeType(practice.getPracticeType());
         return practiceDTO;
+    }
+
+    public String deletePractice(Long id) {
+        Practice practice = this.practiceRepository.findById(id).orElse(null);
+        if(practice != null) {
+            practiceRepository.delete(practice);
+            return "Práctica con el ID: " + practice.getId()+" eliminada correctamente";
+        }
+        return null;
     }
 }

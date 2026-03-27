@@ -13,8 +13,7 @@ public class PracticeDTO {
     private Patient patient;
     private User doctor;
     private LocalDate practiceDate;
-    private SurgeryType surgeryType;
-    private ImplantType implantType;
+    private String practiceType;
     private Boolean reimplantation;
     private BigDecimal amount;
 
@@ -42,21 +41,6 @@ public class PracticeDTO {
         this.practiceDate = practiceDate;
     }
 
-    public SurgeryType getSurgeryType() {
-        return surgeryType;
-    }
-
-    public void setSurgeryType(SurgeryType surgeryType) {
-        this.surgeryType = surgeryType;
-    }
-
-    public ImplantType getImplantType() {
-        return implantType;
-    }
-
-    public void setImplantType(ImplantType implantType) {
-        this.implantType = implantType;
-    }
 
     public Boolean getReimplantation() {
         return reimplantation;
@@ -72,5 +56,13 @@ public class PracticeDTO {
 
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+
+    public String getPracticeType() {
+        return practiceType;
+    }
+
+    public void setPracticeType(String practiceType) {
+        this.practiceType = practiceType;
     }
 }
