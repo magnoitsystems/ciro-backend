@@ -126,7 +126,7 @@ public class CurrentAccountService {
                     return labelRepository.save(newLabel);
                 });
 
-        LabelPatient existingRelation = labelPatientRepository.findByPatientIdAndLabelId(patient.getId(), debtorLabel.getId());
+        LabelPatient existingRelation = labelPatientRepository.findByPatientIdAndLabelId(patient.getId(), debtorLabel.getId()).orElse(null);;
         boolean alreadyHasLabel = (existingRelation != null);
 
         if (hasDebt && !alreadyHasLabel) {
