@@ -17,30 +17,26 @@ public class PracticeController {
     private PracticeService practiceService;
 
     @GetMapping
-    public ResponseEntity<List<PracticeDTO>> findAllPractices() {
-        List<PracticeDTO> practices = practiceService.getAllPractices();
-
+    public ResponseEntity<List<Practice>> findAllPractices() {
+        List<Practice> practices = practiceService.getAllPractices();
         return ResponseEntity.ok(practices);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PracticeDTO> findPracticeById(@PathVariable Long id){
-        PracticeDTO practice = practiceService.getPractice(id);
-
+    public ResponseEntity<Practice> findPracticeById(@PathVariable Long id){
+        Practice practice = practiceService.getPractice(id);
         return ResponseEntity.ok(practice);
     }
 
     @PostMapping()
     public ResponseEntity<Practice> createPractice(PracticeDTO practiceDTO) {
         Practice practice = practiceService.createPractice(practiceDTO);
-
         return ResponseEntity.ok(practice);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Practice> updatePractice(PracticeDTO practiceDTO, @PathVariable Long id) {
         Practice practice = practiceService.updatePractice(practiceDTO, id);
-
         return ResponseEntity.ok(practice);
     }
 
@@ -53,17 +49,9 @@ public class PracticeController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/doctor/{id}")
-    public ResponseEntity<List<PracticeDTO>> findPracticeByDoctorId(@PathVariable Long id){
-        List<PracticeDTO> practicesByDoctor = practiceService.getPracticesByDoctor(id);
-
-        return ResponseEntity.ok(practicesByDoctor);
-    }
-
-    @GetMapping("/patient/{id}")
-    public ResponseEntity<List<PracticeDTO>> findPracticeByPatientId(@PathVariable Long id){
-        List<PracticeDTO> practicesByPatient = practiceService.getPracticesByPatient(id);
-
-        return ResponseEntity.ok(practicesByPatient);
+    @GetMapping("/type")
+    public ResponseEntity<List<Practice>> getPracticesByType(String type) {
+        List<Practice> practices = this.practiceService.getPracticesByType(type);
+        return ResponseEntity.ok(practices);
     }
 }

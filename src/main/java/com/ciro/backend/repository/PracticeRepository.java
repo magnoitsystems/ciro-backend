@@ -10,9 +10,6 @@ import java.util.List;
 @Repository
 public interface PracticeRepository extends JpaRepository<Practice, Long> {
 
-    @Query("SELECT p FROM Practice p WHERE p.doctor.id = :id")
-    List<Practice> findPracticeByDoctorId(Long id);
-
-    @Query("SELECT p FROM Practice p WHERE  p.patient.id = :id")
-    List<Practice> findPracticeByPatientId(Long id);
+    @Query("SELECT p FROM Practice p WHERE LOWER(p.practiceType) ILIKE LOWER(:type) ")
+    List<Practice> getPracticesByType(String type);
 }

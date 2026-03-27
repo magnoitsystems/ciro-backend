@@ -10,28 +10,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class PracticeDTO {
-    private Patient patient;
-    private User doctor;
     private LocalDate practiceDate;
     private String practiceType;
-    private Boolean reimplantation;
-    private BigDecimal amount;
+    private BigDecimal amountDollars;
+    private BigDecimal amountPesos;
+    private BigDecimal tc;
 
-    public Patient getPatient() {
-        return patient;
-    }
-
-    public void setPatient(Patient patient) {
-        this.patient = patient;
-    }
-
-    public User getDoctor() {
-        return doctor;
-    }
-
-    public void setDoctor(User doctor) {
-        this.doctor = doctor;
-    }
 
     public LocalDate getPracticeDate() {
         return practiceDate;
@@ -41,21 +25,28 @@ public class PracticeDTO {
         this.practiceDate = practiceDate;
     }
 
-
-    public Boolean getReimplantation() {
-        return reimplantation;
+    public BigDecimal getAmountDollars() {
+        return amountDollars;
     }
 
-    public void setReimplantation(Boolean reimplantation) {
-        this.reimplantation = reimplantation;
+    public void setAmountDollars(BigDecimal amountDollars) {
+        this.amountDollars = amountDollars;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
+    public BigDecimal getAmountPesos() {
+        return amountPesos;
     }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
+    public void setAmountPesos(BigDecimal amountPesos) {
+        this.amountPesos = amountPesos;
+    }
+
+    public BigDecimal getTc() {
+        return tc;
+    }
+
+    public void setTc(BigDecimal tc) {
+        this.tc = tc;
     }
 
     public String getPracticeType() {

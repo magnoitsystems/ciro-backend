@@ -11,14 +11,6 @@ public class Practice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "id_patient")
-    private Patient patient;
-
-    @ManyToOne
-    @JoinColumn(name = "id_doctor")
-    private User doctor;
-
     @Column(name = "practice_date")
     private LocalDate practiceDate;
 
@@ -26,28 +18,14 @@ public class Practice {
     @Column(name = "practice_type")
     private String practiceType;
 
-    private Boolean reimplantation;
+    private BigDecimal amountDollars;
 
-    private BigDecimal amount;
+    private BigDecimal tc;
+
+    private BigDecimal amountPesos;
 
     public Long getId() {
         return id;
-    }
-
-    public Patient getPatient() {
-        return patient;
-    }
-
-    public void setPatient(Patient patient) {
-        this.patient = patient;
-    }
-
-    public User getDoctor() {
-        return doctor;
-    }
-
-    public void setDoctor(User doctor) {
-        this.doctor = doctor;
     }
 
     public LocalDate getPracticeDate() {
@@ -58,20 +36,28 @@ public class Practice {
         this.practiceDate = practiceDate;
     }
 
-    public Boolean getReimplantation() {
-        return reimplantation;
+    public BigDecimal getAmountDollars() {
+        return amountDollars;
     }
 
-    public void setReimplantation(Boolean reimplantation) {
-        this.reimplantation = reimplantation;
+    public void setAmountDollars(BigDecimal amountDollars) {
+        this.amountDollars = amountDollars;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
+    public BigDecimal getTc() {
+        return tc;
     }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
+    public void setTc(BigDecimal tc) {
+        this.tc = tc;
+    }
+
+    public BigDecimal getAmountPesos() {
+        return amountPesos;
+    }
+
+    public void setAmountPesos(BigDecimal amountPesos) {
+        this.amountPesos = amountPesos;
     }
 
     public void setId(Long id) {
