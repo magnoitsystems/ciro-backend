@@ -16,13 +16,6 @@ public class MedicalRecordController {
     @Autowired
     private MedicalRecordService medicalRecordService;
 
-    @GetMapping()
-    public ResponseEntity<List<MedicalRecordDTO>> getMedicalRecords() {
-        List<MedicalRecordDTO> medicalRecordDTOS = medicalRecordService.getAllMedicalRecords();
-
-        return new ResponseEntity<>(medicalRecordDTOS, HttpStatus.OK);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<MedicalRecordDTO> getMedicalRecordById(@PathVariable Long id) {
         MedicalRecordDTO medicalRecordDTO = medicalRecordService.getMedicalRecordById(id);

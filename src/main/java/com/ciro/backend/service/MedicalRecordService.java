@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,29 +37,26 @@ public class MedicalRecordService {
     @Transactional
     public MedicalRecord createMedicalRecord(MedicalRecordDTO dto) {
 
-        Patient patient = patientRepository
-                .findByDni(dto.getPatient().getDni());
+        Patient patient = patientRepository.findByDni(dto.getPatient().getDni());
+        if (patient == null) {
+            throw new ResourceNotFoundException("Paciente no encontrado con DNI: " + dto.getPatient().getDni());
+        }
 
-        User doctor = userRepository
-                .findById(dto.getDoctor().getId())
+        User doctor = userRepository.findById(dto.getDoctor().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor no existe"));
 
-        Shift shift = new Shift();
-        if(dto.getShift() != null) {
-            shift = shiftRepository
-                    .findById(dto.getShift().getId())
-                    .orElse(null); // si puede ser null
-        } else {
-            shift = null;
+        Shift shift = null;
+        if (dto.getShift() != null && dto.getShift().getId() != null) {
+            shift = shiftRepository.findById(dto.getShift().getId()).orElse(null);
         }
 
         MedicalRecord newMedicalRecord = new MedicalRecord();
         newMedicalRecord.setPatient(patient);
         newMedicalRecord.setDoctor(doctor);
         newMedicalRecord.setShift(shift);
-        newMedicalRecord.setRecordDate(dto.getRecordDate());
         newMedicalRecord.setFile(dto.getFile());
         newMedicalRecord.setEvaluation(dto.getEvaluation());
+        newMedicalRecord.setRecordDate(dto.getRecordDate() != null ? dto.getRecordDate() : LocalDate.now());
 
         return medicalRecordRepository.save(newMedicalRecord);
     }
@@ -104,18 +102,6 @@ public class MedicalRecordService {
         if(id >= 0){
             medicalRecordRepository.deleteById(id);
         }
-    }
-
-    //GETS
-
-    //All medical records
-    public List<MedicalRecordDTO> getAllMedicalRecords() {
-        List<MedicalRecord> medicalRecords = medicalRecordRepository.findAll();
-        List<MedicalRecordDTO> dtos = new ArrayList<>();
-        for (MedicalRecord medicalRecord : medicalRecords) {
-            dtos.add(mapToDTO(medicalRecord));
-        }
-        return dtos;
     }
 
     //By medical record id
