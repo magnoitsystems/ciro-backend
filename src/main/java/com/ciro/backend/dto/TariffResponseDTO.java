@@ -1,28 +1,38 @@
 package com.ciro.backend.dto;
 
-import com.ciro.backend.entity.Patient;
-import com.ciro.backend.entity.User;
-import com.ciro.backend.enums.ImplantType;
-import com.ciro.backend.enums.SurgeryType;
-import lombok.Data;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public class PracticeDTO {
-    private LocalDate practiceDate;
-    private String practiceType;
+public class TariffResponseDTO {
+    private Long id;
+    private String name;
+    private LocalDate tariffDate;
     private BigDecimal amountDollars;
     private BigDecimal amountPesos;
     private BigDecimal tc;
 
-
-    public LocalDate getPracticeDate() {
-        return practiceDate;
+    public Long getId() {
+        return id;
     }
 
-    public void setPracticeDate(LocalDate practiceDate) {
-        this.practiceDate = practiceDate;
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public LocalDate getTariffDate() {
+        return tariffDate;
+    }
+
+    public void setTariffDate(LocalDate tariffDate) {
+        this.tariffDate = tariffDate;
     }
 
     public BigDecimal getAmountDollars() {
@@ -47,13 +57,5 @@ public class PracticeDTO {
 
     public void setTc(BigDecimal tc) {
         this.tc = tc;
-    }
-
-    public String getPracticeType() {
-        return practiceType;
-    }
-
-    public void setPracticeType(String practiceType) {
-        this.practiceType = practiceType;
     }
 }
