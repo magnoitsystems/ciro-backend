@@ -34,7 +34,7 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
-        return new AuthResponseDTO(accessToken, refreshToken, user.getId(), user.getName(), user.getColor());
+        return new AuthResponseDTO(accessToken, refreshToken, user.getId(), user.getName(), user.getColor(), user.getRole());
     }
 
     public AuthResponseDTO refreshToken(String refreshToken) {
@@ -47,7 +47,7 @@ public class AuthService {
             if (jwtService.isTokenValid(refreshToken, user.getUsername())) {
                 String newAccessToken = jwtService.generateAccessToken(user);
 
-                return new AuthResponseDTO(newAccessToken, refreshToken, user.getId(), user.getName(), user.getColor());
+                return new AuthResponseDTO(newAccessToken, refreshToken, user.getId(), user.getName(), user.getColor(), user.getRole());
             }
         }
         throw new BadRequestException("Refresh token inválido o expirado");
