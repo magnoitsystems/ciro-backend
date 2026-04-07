@@ -1,6 +1,7 @@
 package com.ciro.backend.service;
 
-import com.ciro.backend.dto.BudgetDTO;
+import com.ciro.backend.dto.BudgetCreateDTO;
+import com.ciro.backend.dto.BudgetResponseDTO;
 import com.ciro.backend.entity.Budget;
 import com.ciro.backend.entity.Patient;
 import com.ciro.backend.exception.ResourceNotFoundException;
@@ -8,102 +9,112 @@ import com.ciro.backend.repository.BudgetRepository;
 import com.ciro.backend.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BudgetService {
+
     @Autowired
     private BudgetRepository budgetRepository;
+
     @Autowired
     private PatientRepository patientRepository;
 
-    public List<BudgetDTO> findByPatientId(Long patientId) {
-        if(patientId >= 0){
-            Patient patient = patientRepository.findById(patientId).orElseThrow(() -> new ResourceNotFoundException("No se encontró el reporte médico con ID: " + patientId));
-            List<Budget> budget = budgetRepository.findByPatientId(patient.getId());
-            List<BudgetDTO> budgetDTOList = new ArrayList<>();
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
-            for(Budget budgetDTO : budget){
-                budgetDTOList.add(mapToDTO(budgetDTO));
-            }
-            return budgetDTOList;
-        }
-        return null;
+    public List<BudgetResponseDTO> findByPatientId(Long patientId) {
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+
+        List<Budget> budgets = budgetRepository.findByPatientId(patient.getId());
+        return budgets.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    public Budget save(BudgetDTO budgetDTO) {
+    @Transactional
+    public BudgetResponseDTO save(BudgetCreateDTO dto) {
+        Patient patient = patientRepository.findById(dto.getPatientId())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+
         Budget budget = new Budget();
+        budget.setPatient(patient);
+        budget.setUploadedDate(dto.getUploadedDate() != null ? dto.getUploadedDate() : LocalDate.now());
 
-        Patient patient = patientRepository.findById(budgetDTO.getPatient().getId()).orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
-
-        if(patient != null){
-            budget.setPatient(patient);
-        }
-
-        budget.setFile_url(budgetDTO.getFile_url());
-        budget.setUploadedDate(budgetDTO.getUploadedDate());
-
-        return budgetRepository.save(budget);
-    }
-
-    public BudgetDTO findById(Long id) {
-        if(id >= 0){
-            Budget budget = budgetRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("El reporte con el id " + id + " no existe"));
-
-            if(budget != null){
-                return mapToDTO(budget);
+        if (dto.getFile() != null && !dto.getFile().isEmpty()) {
+            try {
+                String fileUrl = cloudinaryService.uploadFile(dto.getFile());
+                budget.setFile_url(fileUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("Error al subir el archivo a Cloudinary", e);
             }
-            return null;
         }
-        return null;
+
+        Budget savedBudget = budgetRepository.save(budget);
+        return mapToDTO(savedBudget);
     }
 
-    public List<BudgetDTO> findAll() {
+    public BudgetResponseDTO findById(Long id) {
+        Budget budget = budgetRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("El presupuesto con id " + id + " no existe"));
+        return mapToDTO(budget);
+    }
+
+    public List<BudgetResponseDTO> findAll() {
         List<Budget> budgets = (List<Budget>) budgetRepository.findAll();
-        List<BudgetDTO> budgetDTOList = new ArrayList<>();
-
-        for(Budget budget : budgets){
-            budgetDTOList.add(mapToDTO(budget));
-        }
-
-        return budgetDTOList;
+        return budgets.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    public Budget update(BudgetDTO budgetDTO, Long id) {
+    @Transactional
+    public BudgetResponseDTO update(Long id, BudgetCreateDTO dto) {
+        Budget budget = budgetRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Presupuesto no encontrado con id: " + id));
 
-        Budget budget = budgetRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Presupuesto con el id " + id  + " no encontrado"));
-
-        if(budgetDTO.getPatient() != null) {
-            Patient patient = patientRepository.findById(budgetDTO.getPatient().getId()).orElse(null);
+        if (dto.getPatientId() != null) {
+            Patient patient = patientRepository.findById(dto.getPatientId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
             budget.setPatient(patient);
         }
 
-        if(budgetDTO.getUploadedDate() != null){
-            budget.setUploadedDate(budgetDTO.getUploadedDate());
+        if (dto.getUploadedDate() != null) {
+            budget.setUploadedDate(dto.getUploadedDate());
         }
 
-        if(budgetDTO.getFile_url() != null){
-            budget.setFile_url(budgetDTO.getFile_url());
+        if (dto.getFile() != null && !dto.getFile().isEmpty()) {
+            try {
+                String fileUrl = cloudinaryService.uploadFile(dto.getFile());
+                budget.setFile_url(fileUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("Error al subir el archivo a Cloudinary", e);
+            }
         }
 
-        return budgetRepository.save(budget);
+        Budget updatedBudget = budgetRepository.save(budget);
+        return mapToDTO(updatedBudget);
     }
 
+    @Transactional
     public void deleteById(Long id) {
-        if(id >= 0){
-            budgetRepository.deleteById(id);
-        }
+        Budget budget = budgetRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Presupuesto no encontrado"));
+        budgetRepository.delete(budget);
     }
 
-    public BudgetDTO mapToDTO(Budget budget) {
-        BudgetDTO dto = new BudgetDTO();
-
-        dto.setFile_url(budget.getFile_url());
-        dto.setPatient(budget.getPatient());
+    private BudgetResponseDTO mapToDTO(Budget budget) {
+        BudgetResponseDTO dto = new BudgetResponseDTO();
+        dto.setId(budget.getId());
+        dto.setFileUrl(budget.getFile_url());
         dto.setUploadedDate(budget.getUploadedDate());
 
+        if (budget.getPatient() != null) {
+            dto.setPatientId(budget.getPatient().getId());
+            dto.setPatientFullName(budget.getPatient().getFullName());
+        }
         return dto;
     }
 }
