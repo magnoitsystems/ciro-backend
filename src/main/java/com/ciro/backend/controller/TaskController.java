@@ -1,11 +1,9 @@
 package com.ciro.backend.controller;
 
-import com.ciro.backend.dto.NoteDTO;
-import com.ciro.backend.dto.TaskDTO;
-import com.ciro.backend.entity.Task;
+import com.ciro.backend.dto.TaskCreateDTO;
+import com.ciro.backend.dto.TaskResponseDTO;
 import com.ciro.backend.enums.TaskStatus;
 import com.ciro.backend.service.TaskService;
-import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,59 +14,43 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/tasks")
 public class TaskController {
+
     @Autowired
     private TaskService taskService;
 
-    @GetMapping()
-    public ResponseEntity<List<TaskDTO>> getTasks() {
-        List<TaskDTO> taskDTOS = taskService.findAll();
-
-        return new ResponseEntity<>(taskDTOS, HttpStatus.OK);
+    @GetMapping
+    public ResponseEntity<List<TaskResponseDTO>> getTasks() {
+        return ResponseEntity.ok(taskService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TaskDTO> getTask(@PathVariable Long id) {
-        TaskDTO taskDTOS = taskService.findById(id);
-
-        return new ResponseEntity<>(taskDTOS, HttpStatus.OK);
+    public ResponseEntity<TaskResponseDTO> getTask(@PathVariable Long id) {
+        return ResponseEntity.ok(taskService.findById(id));
     }
 
     @GetMapping("/user/{id}")
-    public ResponseEntity<List<TaskDTO>> getTaskByUserId(@PathVariable Long id) {
-        List<TaskDTO> taskDTOS = taskService.findAllByUser(id);
-
-        return new ResponseEntity<>(taskDTOS, HttpStatus.OK);
+    public ResponseEntity<List<TaskResponseDTO>> getTaskByUserId(@PathVariable Long id) {
+        return ResponseEntity.ok(taskService.findAllByUser(id));
     }
 
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<TaskDTO>> getTaskByStatus(@PathVariable TaskStatus status) {
-
-        List<TaskDTO> taskDTOS = taskService.findTasksByStatus(status);
-
-        return new ResponseEntity<>(taskDTOS, HttpStatus.OK);
+    public ResponseEntity<List<TaskResponseDTO>> getTaskByStatus(@PathVariable TaskStatus status) {
+        return ResponseEntity.ok(taskService.findTasksByStatus(status));
     }
 
     @PostMapping
-    public ResponseEntity<TaskDTO> createTask(@RequestBody TaskDTO taskDTO, @Nullable @RequestBody NoteDTO noteDTO) {
-        Task newTask = taskService.save(taskDTO, noteDTO);
-        if(newTask == null){
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(taskDTO, HttpStatus.CREATED);
+    public ResponseEntity<TaskResponseDTO> createTask(@RequestBody TaskCreateDTO taskDTO) {
+        return new ResponseEntity<>(taskService.save(taskDTO), HttpStatus.CREATED);
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity<TaskDTO> updateTask(@PathVariable Long id, @RequestBody TaskDTO taskDTO) {
-        Task newTask = taskService.update(taskDTO, id);
-
-        return new ResponseEntity<>(taskDTO, HttpStatus.OK);
+    @PutMapping("/{id}")
+    public ResponseEntity<TaskResponseDTO> updateTask(@PathVariable Long id, @RequestBody TaskCreateDTO taskDTO) {
+        return ResponseEntity.ok(taskService.update(id, taskDTO));
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<TaskDTO> deleteTask(@PathVariable Long id) {
-        TaskDTO taskDTO = taskService.findById(id);
-
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
         taskService.delete(id);
-        return new ResponseEntity<>(taskDTO, HttpStatus.OK);
+        return ResponseEntity.noContent().build();
     }
 }

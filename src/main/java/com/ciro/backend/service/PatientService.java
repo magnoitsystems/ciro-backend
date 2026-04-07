@@ -81,7 +81,7 @@ public class PatientService {
             labelPatientService.assignLabelToPatient(lpFrom);
 
         } else {
-            TaskDTO automaticTaskDTO = new TaskDTO();
+            TaskCreateDTO automaticTaskDTO = new TaskCreateDTO();
             automaticTaskDTO.setUser(creator);
             automaticTaskDTO.setDescription("DNI: " + savedPatient.getDni());
             automaticTaskDTO.setStatus(TaskStatus.PENDING);
@@ -93,7 +93,7 @@ public class PatientService {
         return mapToResponseDTO(savedPatient);
     }
 
-    private void createTask(TaskDTO automaticTaskDTO) {
+    private void createTask(TaskCreateDTO automaticTaskDTO) {
         taskService.save(automaticTaskDTO, null);
     }
 

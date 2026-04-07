@@ -1,26 +1,42 @@
 package com.ciro.backend.dto;
 
-import com.ciro.backend.entity.User;
 import com.ciro.backend.enums.TaskPriority;
 import com.ciro.backend.enums.TaskStatus;
-import lombok.Data;
-
 import java.time.LocalDateTime;
 
-public class TaskDTO {
-    private User user;
+public class TaskResponseDTO {
+    private Long id;
+    private Long userId;
+    private String userFullName;
     private LocalDateTime taskDate;
     private String title;
     private String description;
     private TaskStatus status;
     private TaskPriority priority;
+    private String noteDescription;
 
-    public User getUser() {
-        return user;
+    public Long getId() {
+        return id;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getUserFullName() {
+        return userFullName;
+    }
+
+    public void setUserFullName(String userFullName) {
+        this.userFullName = userFullName;
     }
 
     public LocalDateTime getTaskDate() {
@@ -61,5 +77,13 @@ public class TaskDTO {
 
     public void setPriority(TaskPriority priority) {
         this.priority = priority;
+    }
+
+    public String getNoteDescription() {
+        return noteDescription;
+    }
+
+    public void setNoteDescription(String noteDescription) {
+        this.noteDescription = noteDescription;
     }
 }

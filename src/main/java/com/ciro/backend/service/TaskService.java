@@ -1,137 +1,136 @@
 package com.ciro.backend.service;
 
-import com.ciro.backend.dto.NoteDTO;
-import com.ciro.backend.dto.TaskDTO;
+import com.ciro.backend.dto.TaskCreateDTO;
+import com.ciro.backend.dto.TaskResponseDTO;
+import com.ciro.backend.entity.Note;
 import com.ciro.backend.entity.Task;
 import com.ciro.backend.entity.User;
 import com.ciro.backend.enums.TaskStatus;
 import com.ciro.backend.exception.ResourceNotFoundException;
+import com.ciro.backend.repository.NoteRepository;
 import com.ciro.backend.repository.TaskRepository;
 import com.ciro.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
+
     @Autowired
     private TaskRepository taskRepository;
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private NoteService noteService;
+    private NoteRepository noteRepository;
 
-    //GET ALL
-    public List<TaskDTO> findAll() {
-        List<Task> tasks = taskRepository.findAll();
-        List<TaskDTO> taskDTOs = new ArrayList<>();
-        for (Task task : tasks) {
-            taskDTOs.add(mapToDTO(task));
-        }
-        return taskDTOs;
+    public List<TaskResponseDTO> findAll() {
+        return taskRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    //GET BY ID
-    public TaskDTO findById(Long id) {
-        if(id >= 0){
-            Task task = taskRepository.findById(id).orElseThrow( () -> new ResourceNotFoundException("La tarea " + id + " no encontrada"));
-            return mapToDTO(task);
-        }
-        return null;
+    public TaskResponseDTO findById(Long id) {
+        Task task = taskRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("La tarea no existe"));
+        return mapToDTO(task);
     }
 
-    //GET BY USER
-    public List<TaskDTO> findAllByUser(Long userId) {
-        if(userId >= 0){
-            List<Task> tasksByUser = taskRepository.findTaskByUserId(userId);
-            List<TaskDTO> taskDTOs = new ArrayList<>();
-            for (Task task : tasksByUser) {
-                taskDTOs.add(mapToDTO(task));
-            }
-            return taskDTOs;
-        }
-        return null;
+    public List<TaskResponseDTO> findAllByUser(Long userId) {
+        return taskRepository.findTaskByUserId(userId).stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    //GET BY STATUS
-    public List<TaskDTO> findTasksByStatus(TaskStatus status) {
-        return taskRepository.findTaskByStatus(status)
-                .stream()
-                .map(this::mapToDTO)
-                .toList();
+    public List<TaskResponseDTO> findTasksByStatus(TaskStatus status) {
+        return taskRepository.findTaskByStatus(status).stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    //POST
-    public Task save(TaskDTO taskDTO, NoteDTO noteDTO) {
-        User user = userRepository.findById(taskDTO.getUser().getId()).orElseThrow( () -> new ResourceNotFoundException("El usuario " + taskDTO.getUser().getId() + " no encontrado"));
+    @Transactional
+    public TaskResponseDTO save(TaskCreateDTO dto) {
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
         Task task = new Task();
         task.setUser(user);
-        task.setDescription(taskDTO.getDescription());
-        task.setTitle(taskDTO.getTitle());
-        task.setPriority(taskDTO.getPriority());
-        task.setTaskDate(taskDTO.getTaskDate());
-        task.setStatus(taskDTO.getStatus());
+        task.setDescription(dto.getDescription());
+        task.setTitle(dto.getTitle());
+        task.setPriority(dto.getPriority());
+        task.setTaskDate(dto.getTaskDate());
+        task.setStatus(dto.getStatus());
 
         Task savedTask = taskRepository.save(task);
 
-        if(noteDTO != null){
-            if(noteDTO.getDescription() != null && noteDTO.getShift() != null) {
-                noteDTO.setTask(task);
-                noteService.createNote(noteDTO);
+        if (dto.getNoteDescription() != null && !dto.getNoteDescription().isEmpty()) {
+            Note newNote = new Note();
+            newNote.setDescription(dto.getNoteDescription());
+            newNote.setTask(savedTask);
+            newNote.setDate(savedTask.getTaskDate());
+            noteRepository.save(newNote);
+        }
+
+        return mapToDTO(savedTask);
+    }
+
+    @Transactional
+    public TaskResponseDTO update(Long id, TaskCreateDTO dto) {
+        Task task = taskRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Tarea no encontrada"));
+
+        if (dto.getDescription() != null) task.setDescription(dto.getDescription());
+        if (dto.getTitle() != null) task.setTitle(dto.getTitle());
+        if (dto.getPriority() != null) task.setPriority(dto.getPriority());
+        if (dto.getTaskDate() != null) task.setTaskDate(dto.getTaskDate());
+        if (dto.getStatus() != null) task.setStatus(dto.getStatus());
+        if (dto.getUserId() != null) {
+            User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+            task.setUser(user);
+        }
+
+        Task updatedTask = taskRepository.save(task);
+
+        if (dto.getNoteDescription() != null) {
+            List<Note> notes = noteRepository.findNoteByTaskId(updatedTask.getId());
+
+            if (!notes.isEmpty()) {
+                Note existingNote = notes.get(0);
+                existingNote.setDescription(dto.getNoteDescription());
+                noteRepository.save(existingNote);
+            } else if (!dto.getNoteDescription().isEmpty()) {
+                Note newNote = new Note();
+                newNote.setDescription(dto.getNoteDescription());
+                newNote.setTask(updatedTask);
+                newNote.setDate(updatedTask.getTaskDate());
+                noteRepository.save(newNote);
             }
         }
 
-        return savedTask;
+        return mapToDTO(updatedTask);
     }
 
-    //PUT
-    public Task update(TaskDTO taskDTO, Long id) {
-        if(id >= 0){
-
-            Task task = taskRepository.findById(id).orElseThrow( () -> new ResourceNotFoundException("La tarea " + id + " no encontrada"));
-            if(taskDTO.getDescription() != null){
-                task.setDescription(taskDTO.getDescription());
-            }
-            if(taskDTO.getTitle() != null){
-                task.setTitle(taskDTO.getTitle());
-            }
-            if(taskDTO.getPriority() != null){
-                task.setPriority(taskDTO.getPriority());
-            }
-            if(taskDTO.getTaskDate() != null){
-                task.setTaskDate(taskDTO.getTaskDate());
-            }
-            if(taskDTO.getStatus() != null){
-                task.setStatus(taskDTO.getStatus());
-            }
-            if(taskDTO.getUser() != null) {
-                User user = userRepository.findById(taskDTO.getUser().getId()).orElseThrow(() -> new ResourceNotFoundException("El usuario " + taskDTO.getUser().getId() + " no encontrado"));
-                task.setUser(user);
-            }
-
-            return taskRepository.save(task);
-        }
-        return null;
-    }
-
-    //DELETE
+    @Transactional
     public void delete(Long id) {
-        if(id >= 0){
-            taskRepository.deleteById(id);
-        }
+        Task task = taskRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Tarea no encontrada"));
+        taskRepository.delete(task);
     }
 
-
-    public TaskDTO mapToDTO(Task task) {
-        TaskDTO dto = new TaskDTO();
+    public TaskResponseDTO mapToDTO(Task task) {
+        TaskResponseDTO dto = new TaskResponseDTO();
+        dto.setId(task.getId());
         dto.setDescription(task.getDescription());
         dto.setStatus(task.getStatus());
         dto.setPriority(task.getPriority());
         dto.setTitle(task.getTitle());
-        dto.setUser(task.getUser());
         dto.setTaskDate(task.getTaskDate());
+
+        if (task.getUser() != null) {
+            dto.setUserId(task.getUser().getId());
+            dto.setUserFullName(task.getUser().getName() + " " + task.getUser().getLastname());
+        }
+
+        List<Note> notes = noteRepository.findNoteByTaskId(task.getId());
+        if (!notes.isEmpty()) {
+            dto.setNoteDescription(notes.get(0).getDescription());
+        }
+
+        return dto;
 
         return dto;
     }
