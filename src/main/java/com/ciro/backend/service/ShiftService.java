@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,6 +49,11 @@ public class ShiftService {
 
     public List<ShiftResponseDTO> getAllShiftByDoctor(Long doctorId) {
         return shiftRepository.getByDoctor(doctorId).stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+
+    public List<ShiftResponseDTO> getShiftsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        List<Shift> shifts = shiftRepository.findByShiftDateBetween(startDate, endDate);
+        return shifts.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
     @Transactional

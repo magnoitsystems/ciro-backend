@@ -4,10 +4,12 @@ import com.ciro.backend.dto.ShiftCreateDTO;
 import com.ciro.backend.dto.ShiftResponseDTO;
 import com.ciro.backend.service.ShiftService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -51,5 +53,14 @@ public class ShiftController {
     public ResponseEntity<Void> deleteShift(@PathVariable Long id) {
         shiftService.deleteShift(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/range")
+    public ResponseEntity<List<ShiftResponseDTO>> getShiftsByDateRange(
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+
+        List<ShiftResponseDTO> shifts = shiftService.getShiftsByDateRange(startDate, endDate);
+        return ResponseEntity.ok(shifts);
     }
 }
