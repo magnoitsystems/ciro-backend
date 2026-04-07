@@ -131,7 +131,5 @@ public class TaskService {
         }
 
         return dto;
-
-        return dto;
     }
 }
