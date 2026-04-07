@@ -45,8 +45,8 @@ public class BudgetController {
         return new ResponseEntity<>(newBudget, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<BudgetResponseDTO> updateBudget(@RequestBody BudgetCreateDTO budgetDTO, @PathVariable Long id){
+    @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
+    public ResponseEntity<BudgetResponseDTO> updateBudget(@ModelAttribute BudgetCreateDTO budgetDTO, @PathVariable Long id){
         BudgetResponseDTO response = budgetService.update(id, budgetDTO);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
