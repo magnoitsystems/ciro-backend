@@ -26,11 +26,6 @@ public class MedicalRecord {
     private Patient patient;
 
     @ManyToOne
-    @JoinColumn(name = "id_shift")
-    @Nullable
-    private Shift shift;
-
-    @ManyToOne
     @JoinColumn(name = "id_doctor")
     private User doctor;
 
@@ -68,14 +63,6 @@ public class MedicalRecord {
 
     public void setPatient(Patient patient) {
         this.patient = patient;
-    }
-
-    public Shift getShift() {
-        return shift;
-    }
-
-    public void setShift(Shift shift) {
-        this.shift = shift;
     }
 
     public User getDoctor() {

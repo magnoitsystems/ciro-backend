@@ -1,9 +1,8 @@
 package com.ciro.backend.controller;
 
-import com.ciro.backend.dto.NoteDTO;
-import com.ciro.backend.dto.ShiftDTO;
+import com.ciro.backend.dto.ShiftCreateDTO;
+import com.ciro.backend.dto.ShiftResponseDTO;
 import com.ciro.backend.service.ShiftService;
-import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,54 +13,43 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/shifts")
 public class ShiftController {
+
     @Autowired
     private ShiftService shiftService;
 
-    @GetMapping()
-    public ResponseEntity<List<ShiftDTO>> getAllShift() {
-        List<ShiftDTO> shiftDTOs = shiftService.getAllShift();
-
-        return new ResponseEntity<>(shiftDTOs, HttpStatus.OK);
+    @GetMapping
+    public ResponseEntity<List<ShiftResponseDTO>> getAllShifts() {
+        return ResponseEntity.ok(shiftService.getAllShift());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ShiftDTO> getShift(@PathVariable Long id) {
-        ShiftDTO shiftDTO = shiftService.getShiftById(id);
-
-        return new ResponseEntity<>(shiftDTO, HttpStatus.OK);
+    public ResponseEntity<ShiftResponseDTO> getShift(@PathVariable Long id) {
+        return ResponseEntity.ok(shiftService.getShiftById(id));
     }
 
     @GetMapping("/doctor/{id}")
-    public ResponseEntity<List<ShiftDTO>> getAllShiftByDoctor(@PathVariable Long id) {
-        List<ShiftDTO> shiftDTO = shiftService.getAllShiftByDoctor(id);
-
-        return new ResponseEntity<>(shiftDTO, HttpStatus.OK);
+    public ResponseEntity<List<ShiftResponseDTO>> getAllShiftsByDoctor(@PathVariable Long id) {
+        return ResponseEntity.ok(shiftService.getAllShiftByDoctor(id));
     }
 
     @GetMapping("/patient/{dni}")
-    public ResponseEntity<List<ShiftDTO>> getAllShiftByPatient(@PathVariable String dni) {
-        List<ShiftDTO> shifts = shiftService.getAllShiftByPatient(dni);
+    public ResponseEntity<List<ShiftResponseDTO>> getAllShiftsByPatient(@PathVariable String dni) {
+        return ResponseEntity.ok(shiftService.getAllShiftByPatient(dni));
+    }
 
-        return ResponseEntity.ok(shifts);
+    @PostMapping // ¡Acá está el fix vital, un solo body!
+    public ResponseEntity<ShiftResponseDTO> createShift(@RequestBody ShiftCreateDTO dto) {
+        return new ResponseEntity<>(shiftService.createShift(dto), HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ShiftResponseDTO> updateShift(@PathVariable Long id, @RequestBody ShiftCreateDTO dto) {
+        return ResponseEntity.ok(shiftService.updateShift(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ShiftDTO> deleteShift(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteShift(@PathVariable Long id) {
         shiftService.deleteShift(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @PostMapping()
-    public ResponseEntity<ShiftDTO> createShift(@RequestBody ShiftDTO shiftDTO,  @Nullable @RequestBody NoteDTO noteDTO) {
-        shiftService.createShift(shiftDTO, noteDTO);
-
-        return new ResponseEntity<>(shiftDTO, HttpStatus.CREATED);
-    }
-
-    @PutMapping("{id}")
-    public ResponseEntity<ShiftDTO> updateShift(@PathVariable Long id, @RequestBody ShiftDTO shiftDTO) {
-        shiftService.updateShift(shiftDTO, id);
-
-        return new ResponseEntity<>(shiftDTO, HttpStatus.OK);
+        return ResponseEntity.noContent().build();
     }
 }
