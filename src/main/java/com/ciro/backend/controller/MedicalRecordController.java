@@ -1,7 +1,7 @@
 package com.ciro.backend.controller;
 
-import com.ciro.backend.dto.MedicalRecordDTO;
-import com.ciro.backend.entity.MedicalRecord;
+import com.ciro.backend.dto.MedicalRecordCreateDTO;
+import com.ciro.backend.dto.MedicalRecordResponseDTO;
 import com.ciro.backend.service.MedicalRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,48 +13,40 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/medicalRecords")
 public class MedicalRecordController {
+
     @Autowired
     private MedicalRecordService medicalRecordService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<MedicalRecordDTO> getMedicalRecordById(@PathVariable Long id) {
-        MedicalRecordDTO medicalRecordDTO = medicalRecordService.getMedicalRecordById(id);
-
-        return new ResponseEntity<>(medicalRecordDTO, HttpStatus.OK);
+    public ResponseEntity<MedicalRecordResponseDTO> getMedicalRecordById(@PathVariable Long id) {
+        return new ResponseEntity<>(medicalRecordService.getMedicalRecordById(id), HttpStatus.OK);
     }
 
     @GetMapping("/doctor/{id}")
-    public ResponseEntity<List<MedicalRecordDTO>> getMedicalRecordByDoctorId(@PathVariable Long id) {
-        List<MedicalRecordDTO> medicalRecordDTO = medicalRecordService.getMedicalRecordsByDoctor(id);
-
-        return new ResponseEntity<>(medicalRecordDTO, HttpStatus.OK);
+    public ResponseEntity<List<MedicalRecordResponseDTO>> getMedicalRecordByDoctorId(@PathVariable Long id) {
+        return new ResponseEntity<>(medicalRecordService.getMedicalRecordsByDoctor(id), HttpStatus.OK);
     }
 
     @GetMapping("/patient/{dni}")
-    public ResponseEntity<List<MedicalRecordDTO>> getMedicalRecordsByDniPatient(@PathVariable String dni) {
-        List<MedicalRecordDTO> medicalRecordDTO = medicalRecordService.getMedicalRecordByDNIPatient(dni);
-
-        return new ResponseEntity<>(medicalRecordDTO, HttpStatus.OK);
+    public ResponseEntity<List<MedicalRecordResponseDTO>> getMedicalRecordsByDniPatient(@PathVariable String dni) {
+        return new ResponseEntity<>(medicalRecordService.getMedicalRecordByDNIPatient(dni), HttpStatus.OK);
     }
 
-    @PostMapping
-    public ResponseEntity<MedicalRecord> createMedicalRecord(@RequestBody MedicalRecordDTO medicalRecordDTO) {
-        MedicalRecord medicalRecord = medicalRecordService.createMedicalRecord(medicalRecordDTO);
-        return new ResponseEntity<>(medicalRecord, HttpStatus.CREATED);
+    @PostMapping(consumes = { "multipart/form-data" })
+    public ResponseEntity<MedicalRecordResponseDTO> createMedicalRecord(@ModelAttribute MedicalRecordCreateDTO dto) {
+        MedicalRecordResponseDTO response = medicalRecordService.createMedicalRecord(dto);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<MedicalRecordDTO> updateMedicalRecord(@RequestBody MedicalRecordDTO medicalRecordDTO, @PathVariable Long id) {
-        MedicalRecordDTO medicalRecordUpdate = medicalRecordService.updateMedicalRecord(medicalRecordDTO, id);
-
-        return new ResponseEntity<>(medicalRecordUpdate, HttpStatus.OK);
+    @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
+    public ResponseEntity<MedicalRecordResponseDTO> updateMedicalRecord(@ModelAttribute MedicalRecordCreateDTO dto, @PathVariable Long id) {
+        MedicalRecordResponseDTO response = medicalRecordService.updateMedicalRecord(dto, id);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<MedicalRecordDTO> deleteMedicalRecord(@PathVariable Long id) {
-        MedicalRecordDTO medicalRecordDTO = medicalRecordService.getMedicalRecordById(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteMedicalRecord(@PathVariable Long id) {
         medicalRecordService.deleteMedicalRecord(id);
-
-        return new ResponseEntity<>(medicalRecordDTO, HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

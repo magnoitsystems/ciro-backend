@@ -1,6 +1,7 @@
 package com.ciro.backend.service;
 
-import com.ciro.backend.dto.MedicalRecordDTO;
+import com.ciro.backend.dto.MedicalRecordCreateDTO;
+import com.ciro.backend.dto.MedicalRecordResponseDTO;
 import com.ciro.backend.entity.MedicalRecord;
 import com.ciro.backend.entity.Patient;
 import com.ciro.backend.entity.Shift;
@@ -14,9 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MedicalRecordService {
@@ -31,120 +33,111 @@ public class MedicalRecordService {
     private UserRepository userRepository;
 
     @Autowired
-    private ShiftRepository shiftRepository;
-
+    private CloudinaryService cloudinaryService;
 
     @Transactional
-    public MedicalRecord createMedicalRecord(MedicalRecordDTO dto) {
+    public MedicalRecordResponseDTO createMedicalRecord(MedicalRecordCreateDTO dto) {
 
-        Patient patient = patientRepository.findByDni(dto.getPatient().getDni());
+        Patient patient = patientRepository.findByDni(dto.getPatientDni());
         if (patient == null) {
-            throw new ResourceNotFoundException("Paciente no encontrado con DNI: " + dto.getPatient().getDni());
+            throw new ResourceNotFoundException("Paciente no encontrado con DNI: " + dto.getPatientDni());
         }
 
-        User doctor = userRepository.findById(dto.getDoctor().getId())
+        User doctor = userRepository.findById(dto.getDoctorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor no existe"));
-
-        Shift shift = null;
-        if (dto.getShift() != null && dto.getShift().getId() != null) {
-            shift = shiftRepository.findById(dto.getShift().getId()).orElse(null);
-        }
 
         MedicalRecord newMedicalRecord = new MedicalRecord();
         newMedicalRecord.setPatient(patient);
         newMedicalRecord.setDoctor(doctor);
-        newMedicalRecord.setShift(shift);
-        newMedicalRecord.setFile(dto.getFile());
         newMedicalRecord.setEvaluation(dto.getEvaluation());
         newMedicalRecord.setRecordDate(dto.getRecordDate() != null ? dto.getRecordDate() : LocalDate.now());
 
-        return medicalRecordRepository.save(newMedicalRecord);
+        if (dto.getFile() != null && !dto.getFile().isEmpty()) {
+            try {
+                String fileUrl = cloudinaryService.uploadFile(dto.getFile());
+                newMedicalRecord.setFile(fileUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("Error al subir el archivo a Cloudinary", e);
+            }
+        }
+
+        MedicalRecord savedRecord = medicalRecordRepository.save(newMedicalRecord);
+        return mapToDTO(savedRecord);
     }
 
-    public MedicalRecordDTO updateMedicalRecord(MedicalRecordDTO medicalRecord, Long id) {
+    @Transactional
+    public MedicalRecordResponseDTO updateMedicalRecord(MedicalRecordCreateDTO dto, Long id) {
         MedicalRecord existingMedicalRecord = medicalRecordRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró el reporte médico con ID: " + id));
 
-        if(medicalRecord.getRecordDate() != null){
-            existingMedicalRecord.setRecordDate(medicalRecord.getRecordDate());
+        if (dto.getRecordDate() != null) {
+            existingMedicalRecord.setRecordDate(dto.getRecordDate());
         }
-        if(medicalRecord.getFile() != null){
-            existingMedicalRecord.setFile(medicalRecord.getFile());
+        if (dto.getEvaluation() != null) {
+            existingMedicalRecord.setEvaluation(dto.getEvaluation());
         }
-        if(medicalRecord.getEvaluation() != null){
-            existingMedicalRecord.setEvaluation(medicalRecord.getEvaluation());
+
+        if (dto.getDoctorId() != null) {
+            User doctor = userRepository.findById(dto.getDoctorId()).orElseThrow(() -> new ResourceNotFoundException("Doctor no existe"));
+            existingMedicalRecord.setDoctor(doctor);
         }
-        if(medicalRecord.getDoctor() != null){
-            existingMedicalRecord.setDoctor(medicalRecord.getDoctor());
-        }
-        if(medicalRecord.getShift() != null){
-            existingMedicalRecord.setShift(medicalRecord.getShift());
+
+        if (dto.getFile() != null && !dto.getFile().isEmpty()) {
+            try {
+                String fileUrl = cloudinaryService.uploadFile(dto.getFile());
+                existingMedicalRecord.setFile(fileUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("Error al subir el archivo a Cloudinary", e);
+            }
         }
 
         MedicalRecord updatedMedicalReport = medicalRecordRepository.save(existingMedicalRecord);
-
         return mapToDTO(updatedMedicalReport);
     }
 
-    public MedicalRecordDTO mapToDTO(MedicalRecord medicalRecord) {
-        MedicalRecordDTO dto = new MedicalRecordDTO();
-        dto.setDoctor(medicalRecord.getDoctor());
-        dto.setShift(medicalRecord.getShift());
-        dto.setEvaluation(medicalRecord.getEvaluation());
-        dto.setRecordDate(medicalRecord.getRecordDate());
-        dto.setPatient(medicalRecord.getPatient());
-        dto.setFile(medicalRecord.getFile());
-
-        return dto;
-    }
-
     public void deleteMedicalRecord(Long id) {
-        if(id >= 0){
-            medicalRecordRepository.deleteById(id);
-        }
+        medicalRecordRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("MedicalRecord no encontrado"));
+        medicalRecordRepository.deleteById(id);
     }
 
-    //By medical record id
-    public MedicalRecordDTO getMedicalRecordById(Long id) {
-
-        if (id <= 0) {
-            throw new IllegalArgumentException("ID inválido");
-        }
-
-        MedicalRecord medicalRecord = medicalRecordRepository
-                .findById(id)
+    public MedicalRecordResponseDTO getMedicalRecordById(Long id) {
+        MedicalRecord medicalRecord = medicalRecordRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("MedicalRecord no encontrado"));
-
         return mapToDTO(medicalRecord);
     }
 
-    //By doctor id
-    public List<MedicalRecordDTO> getMedicalRecordsByDoctor(Long doctorId) {
-        User doctor = userRepository.findById(doctorId).orElseThrow(() -> new ResourceNotFoundException("Doctor " + doctorId + " no encontrado"));
+    public List<MedicalRecordResponseDTO> getMedicalRecordsByDoctor(Long doctorId) {
+        User doctor = userRepository.findById(doctorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor " + doctorId + " no encontrado"));
+
         List<MedicalRecord> medicalRecords = medicalRecordRepository.findMedicalRecordByDoctor(doctor.getId());
-
-        List<MedicalRecordDTO> dtos = new ArrayList<>();
-
-        for (MedicalRecord medicalRecord : medicalRecords) {
-            dtos.add(mapToDTO(medicalRecord));
-        }
-
-        return dtos;
+        return medicalRecords.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    //By patient DNI
-    public List<MedicalRecordDTO> getMedicalRecordByDNIPatient(String dni) {
-        List<MedicalRecord> medicalRecord =  medicalRecordRepository.getMedicalRecordByPatient(dni);
-        List<MedicalRecordDTO> dtos = new ArrayList<>();
+    public List<MedicalRecordResponseDTO> getMedicalRecordByDNIPatient(String dni) {
+        List<MedicalRecord> medicalRecords = medicalRecordRepository.getMedicalRecordByPatient(dni);
+        if (medicalRecords == null || medicalRecords.isEmpty()) {
+            throw new ResourceNotFoundException("El paciente con DNI " + dni + " no existe o no tiene registros.");
+        }
+        return medicalRecords.stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
 
-        if(medicalRecord == null){
-            throw new ResourceNotFoundException("El paciente con DNI " + dni + " no existe.");
+    public MedicalRecordResponseDTO mapToDTO(MedicalRecord medicalRecord) {
+        MedicalRecordResponseDTO dto = new MedicalRecordResponseDTO();
+        dto.setId(medicalRecord.getId());
+        dto.setEvaluation(medicalRecord.getEvaluation());
+        dto.setRecordDate(medicalRecord.getRecordDate());
+        dto.setFileUrl(medicalRecord.getFile()); // Acá va la URL de Cloudinary
+
+        if (medicalRecord.getDoctor() != null) {
+            dto.setDoctorId(medicalRecord.getDoctor().getId());
+            dto.setDoctorFullName(medicalRecord.getDoctor().getName() + " " + medicalRecord.getDoctor().getLastname());
+        }
+        if (medicalRecord.getPatient() != null) {
+            dto.setPatientDni(medicalRecord.getPatient().getDni());
+            dto.setPatientFullName(medicalRecord.getPatient().getFullName());
         }
 
-        for (MedicalRecord medicalRecord1 : medicalRecord) {
-            dtos.add(mapToDTO(medicalRecord1));
-        }
-
-        return dtos;
+        return dto;
     }
 }
