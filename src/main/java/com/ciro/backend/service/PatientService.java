@@ -82,7 +82,7 @@ public class PatientService {
 
         } else {
             TaskCreateDTO automaticTaskDTO = new TaskCreateDTO();
-            automaticTaskDTO.setUser(creator);
+            automaticTaskDTO.setUserId(creator.getId());
             automaticTaskDTO.setDescription("DNI: " + savedPatient.getDni());
             automaticTaskDTO.setStatus(TaskStatus.PENDING);
             automaticTaskDTO.setPriority(TaskPriority.LOW);
@@ -94,7 +94,7 @@ public class PatientService {
     }
 
     private void createTask(TaskCreateDTO automaticTaskDTO) {
-        taskService.save(automaticTaskDTO, null);
+        taskService.save(automaticTaskDTO);
     }
 
     public List<PatientResponseDTO> getAllPatients() {

@@ -1,5 +1,6 @@
 package com.ciro.backend.dto;
 
+import com.ciro.backend.entity.User;
 import com.ciro.backend.enums.TaskPriority;
 import com.ciro.backend.enums.TaskStatus;
 import java.time.LocalDateTime;
@@ -68,4 +69,5 @@ public class TaskCreateDTO {
     public void setNoteDescription(String noteDescription) {
         this.noteDescription = noteDescription;
     }
+
 }
