@@ -2,6 +2,7 @@ package com.ciro.backend.controller;
 
 import com.ciro.backend.dto.TaskCreateDTO;
 import com.ciro.backend.dto.TaskResponseDTO;
+import com.ciro.backend.dto.TaskWidgetDTO;
 import com.ciro.backend.enums.TaskStatus;
 import com.ciro.backend.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,5 +53,10 @@ public class TaskController {
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
         taskService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/widget/pending")
+    public ResponseEntity<TaskWidgetDTO> getPendingTasksWidget() {
+        return ResponseEntity.ok(taskService.getPendingTasksWidget());
     }
 }

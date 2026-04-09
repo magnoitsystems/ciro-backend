@@ -2,6 +2,7 @@ package com.ciro.backend.controller;
 
 import com.ciro.backend.dto.ReceiptCreateDTO;
 import com.ciro.backend.dto.ReceiptResponseDTO;
+import com.ciro.backend.dto.RevenueWidgetDTO;
 import com.ciro.backend.service.PdfGenerationService;
 import com.ciro.backend.service.ReceiptService;
 
@@ -61,5 +62,10 @@ public class ReceiptController {
                 .ok()
                 .headers(headers)
                 .body(pdfBytes);
+    }
+
+    @GetMapping("/widget/weekly-revenue")
+    public ResponseEntity<RevenueWidgetDTO> getWeeklyRevenueWidget() {
+        return ResponseEntity.ok(receiptService.getWeeklyRevenueWidget());
     }
 }

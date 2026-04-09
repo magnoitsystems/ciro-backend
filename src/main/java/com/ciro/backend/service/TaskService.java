@@ -2,6 +2,7 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.TaskCreateDTO;
 import com.ciro.backend.dto.TaskResponseDTO;
+import com.ciro.backend.dto.TaskWidgetDTO;
 import com.ciro.backend.entity.Note;
 import com.ciro.backend.entity.Task;
 import com.ciro.backend.entity.User;
@@ -131,5 +132,10 @@ public class TaskService {
         }
 
         return dto;
+    }
+
+    public TaskWidgetDTO getPendingTasksWidget() {
+        List<TaskResponseDTO> pendingTasks = findTasksByStatus(TaskStatus.PENDING);
+        return new TaskWidgetDTO(pendingTasks.size(), pendingTasks);
     }
 }

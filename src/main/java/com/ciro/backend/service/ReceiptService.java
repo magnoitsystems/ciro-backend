@@ -2,6 +2,7 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.ReceiptCreateDTO;
 import com.ciro.backend.dto.ReceiptResponseDTO;
+import com.ciro.backend.dto.RevenueWidgetDTO;
 import com.ciro.backend.entity.*;
 import com.ciro.backend.enums.CashMovementType;
 import com.ciro.backend.enums.CurrencyType;
@@ -172,5 +173,25 @@ public class ReceiptService {
                 receipt.getPatient().getFullName(),
                 receipt.getPatient().getDni()
         );
+    }
+
+    public RevenueWidgetDTO getWeeklyRevenueWidget() {
+        LocalDate today = LocalDate.now();
+        LocalDate startOfWeek = today.with(java.time.DayOfWeek.MONDAY);
+        LocalDate endOfWeek = today.with(java.time.DayOfWeek.SUNDAY);
+
+        List<Receipt> weeklyReceipts = receiptRepository.findByReceiptDateBetween(startOfWeek, endOfWeek);
+
+        BigDecimal totalPesos = weeklyReceipts.stream()
+                .filter(r -> r.getCurrencyType() == CurrencyType.PESOS)
+                .map(Receipt::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalDollars = weeklyReceipts.stream()
+                .filter(r -> r.getCurrencyType() == CurrencyType.DOLARES)
+                .map(Receipt::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new RevenueWidgetDTO(totalPesos, totalDollars);
     }
 }

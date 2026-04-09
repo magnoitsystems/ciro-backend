@@ -3,6 +3,7 @@ package com.ciro.backend.service;
 import com.ciro.backend.dto.ShiftCreateDTO;
 import com.ciro.backend.dto.ShiftResponseDTO;
 import com.ciro.backend.dto.NoteDTO;
+import com.ciro.backend.dto.ShiftWidgetDTO;
 import com.ciro.backend.entity.Note;
 import com.ciro.backend.entity.Patient;
 import com.ciro.backend.entity.Shift;
@@ -153,5 +154,24 @@ public class ShiftService {
         });
 
         return dto;
+    }
+
+    public ShiftWidgetDTO getDashboardWidgetData() {
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime startOfWeek = now.with(java.time.DayOfWeek.MONDAY).toLocalDate().atStartOfDay();
+        LocalDateTime endOfWeek = now.with(java.time.DayOfWeek.SUNDAY).toLocalDate().atTime(23, 59, 59);
+
+        LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
+        LocalDateTime endOfDay = now.toLocalDate().atTime(23, 59, 59);
+
+        long weeklyCount = shiftRepository.countByShiftDateBetween(startOfWeek, endOfWeek);
+        long todayCount = shiftRepository.countByShiftDateBetween(startOfDay, endOfDay);
+
+        ShiftResponseDTO nextShift = shiftRepository.findFirstByShiftDateBetweenOrderByShiftDateAsc(now, endOfDay)
+                .map(this::mapToDTO)
+                .orElse(null);
+
+        return new ShiftWidgetDTO(weeklyCount, todayCount, nextShift);
     }
 }

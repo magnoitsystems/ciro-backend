@@ -17,4 +17,8 @@ public interface ShiftRepository extends JpaRepository<Shift, Long> {
     List<Shift> getByDoctor(Long id);
 
     List<Shift> findByShiftDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    long countByShiftDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    java.util.Optional<Shift> findFirstByShiftDateBetweenOrderByShiftDateAsc(LocalDateTime start, LocalDateTime end);
 }

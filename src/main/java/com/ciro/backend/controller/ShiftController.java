@@ -2,6 +2,7 @@ package com.ciro.backend.controller;
 
 import com.ciro.backend.dto.ShiftCreateDTO;
 import com.ciro.backend.dto.ShiftResponseDTO;
+import com.ciro.backend.dto.ShiftWidgetDTO;
 import com.ciro.backend.service.ShiftService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -62,5 +63,10 @@ public class ShiftController {
 
         List<ShiftResponseDTO> shifts = shiftService.getShiftsByDateRange(startDate, endDate);
         return ResponseEntity.ok(shifts);
+    }
+
+    @GetMapping("/widget/dashboard-info")
+    public ResponseEntity<ShiftWidgetDTO> getShiftDashboardInfo() {
+        return ResponseEntity.ok(shiftService.getDashboardWidgetData());
     }
 }
