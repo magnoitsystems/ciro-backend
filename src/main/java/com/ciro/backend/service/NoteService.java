@@ -11,11 +11,14 @@ import com.ciro.backend.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class NoteService {
+
     @Autowired
     private NoteRepository noteRepository;
     @Autowired
@@ -24,93 +27,86 @@ public class NoteService {
     private ShiftRepository shiftRepository;
 
     public List<NoteDTO> getNotes() {
-        List<Note> notes = noteRepository.findAll();
-        List<NoteDTO> noteDTOs = new ArrayList<>();
-
-        for (Note note : notes) {
-            noteDTOs.add(matToDTO(note));
-        }
-
-        return noteDTOs;
+        return noteRepository.findAll().stream().map(this::matToDTO).collect(Collectors.toList());
     }
 
     public NoteDTO getNoteById(Long noteId) {
-        if(noteId >= 0){
-            Note note = noteRepository.findById(noteId).orElseThrow(()->new ResourceNotFoundException("Note " + noteId +  " no encontrado"));
-            return matToDTO(note);
-        }
-        return null;
+        Note note = noteRepository.findById(noteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Nota " + noteId + " no encontrada"));
+        return matToDTO(note);
     }
 
-    public Note createNote(NoteDTO noteDTO) {
-        Note note = new Note();
+    public List<NoteDTO> getIndependentNotesByDate(LocalDate date) {
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(23, 59, 59);
 
-        Task task = taskRepository.findById(noteDTO.getTask().getId()).orElseThrow(()->new ResourceNotFoundException("Note " + noteDTO.getTask().getId() +  " no encontrado"));
-
-        assert task != null;
-
-        note.setDate(noteDTO.getDate());
-        note.setDescription(noteDTO.getDescription());
-        note.setTask(noteDTO.getTask());
-        note.setShift(noteDTO.getShift());
-
-        return noteRepository.save(note);
-    }
-
-    public Note updateNote(Long noteId, NoteDTO noteDTO) {
-        if(noteId >= 0){
-            Note note = noteRepository.findById(noteId).orElseThrow(()->new ResourceNotFoundException("Note " + noteId +  " no encontrado"));
-            if(noteDTO.getTask() != null){
-                Task task = taskRepository.findById(noteDTO.getTask().getId()).orElseThrow(()->new ResourceNotFoundException("Task " + noteDTO.getTask().getId() +  " no encontrado"));
-                note.setTask(task);
-            }
-
-            if(noteDTO.getShift() != null){
-                Shift shift = shiftRepository.findById(noteDTO.getShift().getId()).orElseThrow(()->new ResourceNotFoundException("Shift " + noteDTO.getShift().getId() +  " no encontrado"));
-                note.setShift(shift);
-            }
-
-            if(noteDTO.getDescription() != null){
-                note.setDescription(noteDTO.getDescription());
-            }
-
-            if(noteDTO.getDate() != null){
-                note.setDate(noteDTO.getDate());
-            }
-
-            return noteRepository.save(note);
-        }
-        return null;
-    }
-
-    public void deleteNote(Long noteId) {
-        if(noteId >= 0){
-            noteRepository.deleteById(noteId);
-        }
+        List<Note> notes = noteRepository.findByTaskIsNullAndShiftIsNullAndDateBetween(startOfDay, endOfDay);
+        return notes.stream().map(this::matToDTO).collect(Collectors.toList());
     }
 
     public List<NoteDTO> getNoteByTask(Long taskId) {
-        if(taskId >= 0){
-            List<Note> note = noteRepository.findNoteByTaskId(taskId);
-            List<NoteDTO> noteDTOS = new ArrayList<>();
+        List<Note> notes = noteRepository.findNoteByTaskId(taskId);
+        return notes.stream().map(this::matToDTO).collect(Collectors.toList());
+    }
 
-            for (Note note1 : note) {
-                noteDTOS.add(matToDTO(note1));
-            }
+    public NoteDTO createNote(NoteDTO noteDTO) {
+        Note note = new Note();
+        note.setDate(noteDTO.getDate() != null ? noteDTO.getDate() : LocalDateTime.now());
+        note.setDescription(noteDTO.getDescription());
 
-            return noteDTOS;
+        if (noteDTO.getTask() != null && noteDTO.getTask().getId() != null) {
+            Task task = taskRepository.findById(noteDTO.getTask().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Tarea no encontrada"));
+            note.setTask(task);
         }
-        return null;
+
+        if (noteDTO.getShift() != null && noteDTO.getShift().getId() != null) {
+            Shift shift = shiftRepository.findById(noteDTO.getShift().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Turno no encontrado"));
+            note.setShift(shift);
+        }
+
+        Note savedNote = noteRepository.save(note);
+        return matToDTO(savedNote);
+    }
+
+    public NoteDTO updateNote(Long noteId, NoteDTO noteDTO) {
+        Note note = noteRepository.findById(noteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Nota " + noteId + " no encontrada"));
+
+        if (noteDTO.getTask() != null && noteDTO.getTask().getId() != null) {
+            Task task = taskRepository.findById(noteDTO.getTask().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Tarea no encontrada"));
+            note.setTask(task);
+        }
+
+        if (noteDTO.getShift() != null && noteDTO.getShift().getId() != null) {
+            Shift shift = shiftRepository.findById(noteDTO.getShift().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Turno no encontrado"));
+            note.setShift(shift);
+        }
+
+        if (noteDTO.getDescription() != null) note.setDescription(noteDTO.getDescription());
+        if (noteDTO.getDate() != null) note.setDate(noteDTO.getDate());
+
+        Note updatedNote = noteRepository.save(note);
+        return matToDTO(updatedNote);
+    }
+
+    public void deleteNote(Long noteId) {
+        if (noteRepository.existsById(noteId)) {
+            noteRepository.deleteById(noteId);
+        } else {
+            throw new ResourceNotFoundException("Nota " + noteId + " no encontrada");
+        }
     }
 
     public NoteDTO matToDTO(Note note) {
         NoteDTO noteDTO = new NoteDTO();
-
         noteDTO.setDate(note.getDate());
         noteDTO.setDescription(note.getDescription());
         noteDTO.setTask(note.getTask());
         noteDTO.setShift(note.getShift());
-
         return noteDTO;
     }
 }
