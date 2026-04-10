@@ -1,8 +1,8 @@
 package com.ciro.backend.service;
 
+import com.ciro.backend.dto.NoteCreateDTO;
 import com.ciro.backend.dto.ShiftCreateDTO;
 import com.ciro.backend.dto.ShiftResponseDTO;
-import com.ciro.backend.dto.NoteDTO;
 import com.ciro.backend.dto.ShiftWidgetDTO;
 import com.ciro.backend.entity.Note;
 import com.ciro.backend.entity.Patient;
@@ -77,9 +77,9 @@ public class ShiftService {
         Shift savedShift = shiftRepository.save(newShift);
 
         if (dto.getNoteDescription() != null && !dto.getNoteDescription().isEmpty()) {
-            NoteDTO noteDTO = new NoteDTO();
+            NoteCreateDTO noteDTO = new NoteCreateDTO();
             noteDTO.setDescription(dto.getNoteDescription());
-            noteDTO.setShift(savedShift);
+            noteDTO.setShiftId(savedShift.getId());
             noteDTO.setDate(dto.getShiftDate());
             noteService.createNote(noteDTO);
         }
