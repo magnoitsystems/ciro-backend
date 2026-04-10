@@ -45,6 +45,8 @@ public class BudgetService {
         Budget budget = new Budget();
         budget.setPatient(patient);
         budget.setUploadedDate(dto.getUploadedDate() != null ? dto.getUploadedDate() : LocalDate.now());
+        budget.setDate(dto.getDate());
+        budget.setStatus(dto.getStatus());
 
         if (dto.getFile() != null && !dto.getFile().isEmpty()) {
             try {
@@ -59,17 +61,6 @@ public class BudgetService {
         return mapToDTO(savedBudget);
     }
 
-    public BudgetResponseDTO findById(Long id) {
-        Budget budget = budgetRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("El presupuesto con id " + id + " no existe"));
-        return mapToDTO(budget);
-    }
-
-    public List<BudgetResponseDTO> findAll() {
-        List<Budget> budgets = (List<Budget>) budgetRepository.findAll();
-        return budgets.stream().map(this::mapToDTO).collect(Collectors.toList());
-    }
-
     @Transactional
     public BudgetResponseDTO update(Long id, BudgetCreateDTO dto) {
         Budget budget = budgetRepository.findById(id)
@@ -81,9 +72,10 @@ public class BudgetService {
             budget.setPatient(patient);
         }
 
-        if (dto.getUploadedDate() != null) {
-            budget.setUploadedDate(dto.getUploadedDate());
-        }
+        if (dto.getUploadedDate() != null) budget.setUploadedDate(dto.getUploadedDate());
+
+        if (dto.getDate() != null) budget.setDate(dto.getDate());
+        if (dto.getStatus() != null) budget.setStatus(dto.getStatus());
 
         if (dto.getFile() != null && !dto.getFile().isEmpty()) {
             try {
@@ -98,18 +90,13 @@ public class BudgetService {
         return mapToDTO(updatedBudget);
     }
 
-    @Transactional
-    public void deleteById(Long id) {
-        Budget budget = budgetRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Presupuesto no encontrado"));
-        budgetRepository.delete(budget);
-    }
-
     private BudgetResponseDTO mapToDTO(Budget budget) {
         BudgetResponseDTO dto = new BudgetResponseDTO();
         dto.setId(budget.getId());
         dto.setFileUrl(budget.getFile_url());
         dto.setUploadedDate(budget.getUploadedDate());
+        dto.setDate(budget.getDate());
+        dto.setStatus(budget.getStatus());
 
         if (budget.getPatient() != null) {
             dto.setPatientId(budget.getPatient().getId());
@@ -117,4 +104,24 @@ public class BudgetService {
         }
         return dto;
     }
+
+    public BudgetResponseDTO findById(Long id) {
+        Budget budget = budgetRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("El presupuesto con id " + id + " no existe"));
+        return mapToDTO(budget);
+    }
+
+    public List<BudgetResponseDTO> findAll() {
+        List<Budget> budgets = (List<Budget>) budgetRepository.findAll();
+        return budgets.stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+
+
+    @Transactional
+    public void deleteById(Long id) {
+        Budget budget = budgetRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Presupuesto no encontrado"));
+        budgetRepository.delete(budget);
+    }
+
 }
