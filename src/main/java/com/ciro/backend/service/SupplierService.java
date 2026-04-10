@@ -1,78 +1,72 @@
 package com.ciro.backend.service;
 
-import com.ciro.backend.dto.SupplierDTO;
+import com.ciro.backend.dto.SupplierCreateDTO;
+import com.ciro.backend.dto.SupplierResponseDTO;
 import com.ciro.backend.entity.Supplier;
+import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.SupplierRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SupplierService {
     @Autowired
     private SupplierRepository supplierRepository;
 
-    public Supplier save(SupplierDTO supplier) {
-        Supplier newSupplier = new Supplier();
+    public SupplierResponseDTO save(SupplierCreateDTO dto) {
+        Supplier supplier = new Supplier();
+        supplier.setFullName(dto.getFullName());
+        supplier.setAddress(dto.getAddress());
+        supplier.setCity(dto.getCity());
+        supplier.setDni(dto.getDni());
+        supplier.setObservations(dto.getObservations());
 
-        newSupplier.setAddress(supplier.getAddress());
-        newSupplier.setCity(supplier.getCity());
-        newSupplier.setDni(supplier.getDni());
-        newSupplier.setObservations(supplier.getObservations());
-        newSupplier.setFullName(supplier.getFullName());
-
-        return supplierRepository.save(newSupplier);
+        Supplier savedSupplier = supplierRepository.save(supplier);
+        return mapToDTO(savedSupplier);
     }
 
-    public SupplierDTO findById(Long id) {
-        if(id >= 0){
-            Supplier supplier = supplierRepository.findById(id).orElseThrow(() -> new RuntimeException("Supplier no encontrado"));
-
-            return mapToDTO(supplier);
-        }
-        return null;
+    public SupplierResponseDTO findById(Long id) {
+        Supplier supplier = supplierRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Proveedor no encontrado"));
+        return mapToDTO(supplier);
     }
 
-    public Supplier update(SupplierDTO supplier, Long id) {
-        if(id >= 0){
-            Supplier newSupplier = supplierRepository.findById(id).orElseThrow(() -> new RuntimeException("Supplier no encontrado"));
-            newSupplier.setAddress(supplier.getAddress());
-            newSupplier.setCity(supplier.getCity());
-            newSupplier.setDni(supplier.getDni());
-            newSupplier.setObservations(supplier.getObservations());
+    public SupplierResponseDTO update(SupplierCreateDTO dto, Long id) {
+        Supplier supplier = supplierRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Proveedor no encontrado"));
 
-            return supplierRepository.save(newSupplier);
-        }
-        return null;
+        if (dto.getFullName() != null) supplier.setFullName(dto.getFullName());
+        if (dto.getAddress() != null) supplier.setAddress(dto.getAddress());
+        if (dto.getCity() != null) supplier.setCity(dto.getCity());
+        if (dto.getDni() != null) supplier.setDni(dto.getDni());
+        if (dto.getObservations() != null) supplier.setObservations(dto.getObservations());
+
+        Supplier updatedSupplier = supplierRepository.save(supplier);
+        return mapToDTO(updatedSupplier);
     }
 
-    public List<SupplierDTO> findAll() {
-        List<Supplier> suppliers = supplierRepository.findAll();
-        List<SupplierDTO> supplierDTOs = new ArrayList<>();
-
-        for (Supplier supplier : suppliers) {
-            supplierDTOs.add(mapToDTO(supplier));
-        }
-
-        return supplierDTOs;
+    public List<SupplierResponseDTO> findAll() {
+        return supplierRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
     public void deleteById(Long id) {
-        if(id >= 0){
-            supplierRepository.deleteById(id);
+        if (!supplierRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Proveedor no encontrado");
         }
+        supplierRepository.deleteById(id);
     }
 
-    public SupplierDTO mapToDTO(Supplier supplier) {
-        SupplierDTO supplierDTO = new SupplierDTO();
-
-        supplierDTO.setAddress(supplier.getAddress());
-        supplierDTO.setCity(supplier.getCity());
-        supplierDTO.setDni(supplier.getDni());
-        supplierDTO.setObservations(supplier.getObservations());
-
-        return supplierDTO;
+    public SupplierResponseDTO mapToDTO(Supplier supplier) {
+        SupplierResponseDTO dto = new SupplierResponseDTO();
+        dto.setId(supplier.getId());
+        dto.setFullName(supplier.getFullName());
+        dto.setAddress(supplier.getAddress());
+        dto.setCity(supplier.getCity());
+        dto.setDni(supplier.getDni());
+        dto.setObservations(supplier.getObservations());
+        return dto;
     }
 }
