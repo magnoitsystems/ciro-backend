@@ -30,6 +30,8 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
             LocalDate endDate
     );
 
+    List<Bill> findByBillTypeAndStatusOrderByBillDateAsc(BillType billType, BillStatus status);
+
     @Query("SELECT COALESCE(SUM(b.amount), 0) FROM Bill b WHERE b.status = 'PAGADO' AND b.currencyType = :currency AND b.billDate BETWEEN :startDate AND :endDate")
     BigDecimal sumExpensesByCurrencyAndDate(@Param("currency") CurrencyType currency, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

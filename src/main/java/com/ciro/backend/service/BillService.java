@@ -2,6 +2,7 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.BillCreateDTO;
 import com.ciro.backend.dto.BillResponseDTO;
+import com.ciro.backend.dto.PendingSalaryItemDTO;
 import com.ciro.backend.entity.Bill;
 import com.ciro.backend.entity.Supplier;
 import com.ciro.backend.entity.User;
@@ -286,5 +287,23 @@ public class BillService {
         return bills.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<PendingSalaryItemDTO> getPendingSalariesWidget() {
+        List<Bill> pendingSalaries = billRepository.findByBillTypeAndStatusOrderByBillDateAsc(BillType.SUELDO, BillStatus.PENDIENTE);
+
+        return pendingSalaries.stream().map(bill -> {
+            String employeeName = bill.getEmployee() != null
+                    ? bill.getEmployee().getName() + " " + bill.getEmployee().getLastname()
+                    : "Empleado desconocido";
+
+            return new PendingSalaryItemDTO(
+                    bill.getId(),
+                    employeeName,
+                    bill.getAmount(),
+                    bill.getCurrencyType()
+            );
+        }).collect(Collectors.toList());
     }
 }

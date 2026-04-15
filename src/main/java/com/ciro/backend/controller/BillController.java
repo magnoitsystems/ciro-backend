@@ -2,6 +2,7 @@ package com.ciro.backend.controller;
 
 import com.ciro.backend.dto.BillCreateDTO;
 import com.ciro.backend.dto.BillResponseDTO;
+import com.ciro.backend.dto.PendingSalaryItemDTO;
 import com.ciro.backend.enums.BillType;
 import com.ciro.backend.enums.OriginType;
 import com.ciro.backend.enums.ReportPeriod;
@@ -71,5 +72,11 @@ public class BillController {
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(pdfBytes);
+    }
+
+    @GetMapping("/widget/pending-salaries")
+    public ResponseEntity<List<PendingSalaryItemDTO>> getPendingSalariesWidget() {
+        List<PendingSalaryItemDTO> response = billService.getPendingSalariesWidget();
+        return ResponseEntity.ok(response);
     }
 }
