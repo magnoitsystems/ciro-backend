@@ -165,7 +165,8 @@ public class ShiftService {
         LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
         LocalDateTime endOfDay = now.toLocalDate().atTime(23, 59, 59);
 
-        long weeklyCount = shiftRepository.countByShiftDateBetween(startOfWeek, endOfWeek);
+        long weeklyCount = shiftRepository.countDistinctPatientsByShiftDateBetween(startOfWeek, endOfWeek);
+
         long todayCount = shiftRepository.countByShiftDateBetween(startOfDay, endOfDay);
 
         ShiftResponseDTO nextShift = shiftRepository.findFirstByShiftDateBetweenOrderByShiftDateAsc(now, endOfDay)

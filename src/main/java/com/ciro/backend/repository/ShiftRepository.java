@@ -20,5 +20,8 @@ public interface ShiftRepository extends JpaRepository<Shift, Long> {
 
     long countByShiftDateBetween(LocalDateTime startDate, LocalDateTime endDate);
 
+    @Query("SELECT COUNT(DISTINCT s.patient) FROM Shift s WHERE s.shiftDate BETWEEN :startDate AND :endDate")
+    long countDistinctPatientsByShiftDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+
     java.util.Optional<Shift> findFirstByShiftDateBetweenOrderByShiftDateAsc(LocalDateTime start, LocalDateTime end);
 }
