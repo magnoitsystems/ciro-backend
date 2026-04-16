@@ -294,13 +294,18 @@ public class BillService {
         List<Bill> pendingSalaries = billRepository.findByBillTypeAndStatusOrderByBillDateAsc(BillType.SUELDO, BillStatus.PENDIENTE);
 
         return pendingSalaries.stream().map(bill -> {
-            String employeeName = bill.getEmployee() != null
-                    ? bill.getEmployee().getName() + " " + bill.getEmployee().getLastname()
-                    : "Empleado desconocido";
+            String fullName = "Desconocido";
+
+            if (bill.getEmployee() != null) {
+                fullName = bill.getEmployee().getName() + " " + bill.getEmployee().getLastname();
+            }
+            else if (bill.getSupplier() != null) {
+                fullName = bill.getSupplier().getFullName();
+            }
 
             return new PendingSalaryItemDTO(
                     bill.getId(),
-                    employeeName,
+                    fullName,
                     bill.getAmount(),
                     bill.getCurrencyType()
             );
