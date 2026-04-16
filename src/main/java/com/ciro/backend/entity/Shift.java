@@ -4,6 +4,7 @@ import com.ciro.backend.enums.ShiftStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "shifts")
@@ -25,6 +26,17 @@ public class Shift {
 
     @Enumerated(EnumType.STRING)
     private ShiftStatus status;
+
+    @OneToMany(mappedBy = "shift", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Note> notes;
+
+    public List<Note> getNotes() {
+        return notes;
+    }
+
+    public void setNotes(List<Note> notes) {
+        this.notes = notes;
+    }
 
     public Long getId() {
         return id;

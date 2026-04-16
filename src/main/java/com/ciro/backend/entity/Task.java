@@ -4,6 +4,7 @@ import com.ciro.backend.enums.TaskStatus;
 import com.ciro.backend.enums.TaskPriority;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "tasks")
@@ -27,6 +28,17 @@ public class Task {
 
     @Enumerated(EnumType.STRING)
     private TaskPriority priority;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Note> notes;
+
+    public List<Note> getNotes() {
+        return notes;
+    }
+
+    public void setNotes(List<Note> notes) {
+        this.notes = notes;
+    }
 
     public Long getId() {
         return id;

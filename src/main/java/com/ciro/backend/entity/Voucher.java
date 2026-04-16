@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "vouchers")
@@ -34,6 +35,17 @@ public class Voucher {
 
     @Column
     private BigDecimal total_amount;
+
+    @OneToMany(mappedBy = "voucher", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VoucherDetail> details;
+
+    public List<VoucherDetail> getDetails() {
+        return details;
+    }
+
+    public void setDetails(List<VoucherDetail> details) {
+        this.details = details;
+    }
 
     public CurrencyType getCurrencyType() { return currencyType; }
     public void setCurrencyType(CurrencyType currencyType) { this.currencyType = currencyType; }
