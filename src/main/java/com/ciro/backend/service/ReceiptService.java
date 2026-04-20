@@ -122,7 +122,8 @@ public class ReceiptService {
                 savedReceipt.getPaymentMethod(),
                 savedReceipt.getId(),
                 CashMovementType.INGRESO,
-                "Ingreso por recibo de paciente: " + patient.getFullName()
+                "Ingreso por recibo de paciente: " + patient.getFullName(),
+                savedReceipt.getDoctor() != null ? savedReceipt.getDoctor().getId() : null
         );
 
         return new ReceiptResponseDTO(

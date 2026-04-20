@@ -9,7 +9,6 @@ import com.ciro.backend.repository.BillRepository;
 import com.ciro.backend.repository.CashMovementRepository;
 import com.ciro.backend.repository.ReceiptRepository;
 import com.ciro.backend.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,13 +31,10 @@ public class CashMovementService {
     @Autowired
     private ReceiptRepository receiptRepository;
     @Autowired
-    private UserService userService;
-    @Autowired
     private UserRepository userRepository;
 
-
     public void createMovement(BigDecimal amount, CurrencyType currency, PaymentMethod method,
-                                    Long referenceId, CashMovementType type, String observations) {
+                               Long referenceId, CashMovementType type, String observations, Long doctorId) {
         CashMovement movement = new CashMovement();
         movement.setAmount(amount);
         movement.setCurrencyType(currency);
@@ -47,6 +43,7 @@ public class CashMovementService {
         movement.setType(type);
         movement.setMovementDate(LocalDateTime.now());
         movement.setObservations(observations);
+        movement.setDoctorId(doctorId);
 
         cashMovementRepository.save(movement);
     }
@@ -101,11 +98,13 @@ public class CashMovementService {
 
         if (movement.getType() == CashMovementType.INGRESO) {
             dto.setRelatedEntity(receiptRepository.findById(movement.getReferenceId()).orElse(null));
+
+            if (movement.getDoctorId() != null) {
+                dto.setSuggestedSplits(calculateSplits(movement.getAmount()));
+            }
         } else {
             dto.setRelatedEntity(billRepository.findById(movement.getReferenceId()).orElse(null));
         }
-
-        dto.setSuggestedSplits(calculateSplits(movement.getAmount()));
 
         return dto;
     }
@@ -113,10 +112,10 @@ public class CashMovementService {
     private List<CashMovementDetailDTO.PercentageSplitDTO> calculateSplits(BigDecimal total) {
         List<CashMovementDetailDTO.PercentageSplitDTO> splits = new ArrayList<>();
 
-        splits.add(createSplit(total, "80/20", 0.80));
-        splits.add(createSplit(total, "70/30", 0.70));
-        splits.add(createSplit(total, "60/40", 0.60));
-        splits.add(createSplit(total, "50/50", 0.50));
+        splits.add(createSplit(total, "20% Doctor / 80% CIRO", 0.20));
+        splits.add(createSplit(total, "30% Doctor / 70% CIRO", 0.30));
+        splits.add(createSplit(total, "40% Doctor / 60% CIRO", 0.40));
+        splits.add(createSplit(total, "50% Doctor / 50% CIRO", 0.50));
 
         return splits;
     }
@@ -136,13 +135,16 @@ public class CashMovementService {
         CashMovement movement = cashMovementRepository.findById(movementId)
                 .orElseThrow(() -> new RuntimeException("Movimiento no encontrado"));
 
-        return createSplit(movement.getAmount(), (int)(doctorPercentage*100) + "/" + (int)((1-doctorPercentage)*100), doctorPercentage);
+        int docLabel = (int)(doctorPercentage * 100);
+        int ciroLabel = 100 - docLabel;
+
+        return createSplit(movement.getAmount(), docLabel + "% Doctor / " + ciroLabel + "% CIRO", doctorPercentage);
     }
 
     public List<CashMovement> getCashMovementsByUserId(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("El usuario con ID " + id + " no existe"));
 
-        List<CashMovement> movements = cashMovementRepository.findByUserId()
+        return cashMovementRepository.findByDoctorIdAndType(id, CashMovementType.INGRESO);
     }
 }

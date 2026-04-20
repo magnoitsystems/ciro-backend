@@ -62,9 +62,9 @@ public class CashMovementController {
         return ResponseEntity.ok(detail);
     }
 
-    @GetMapping("/user/{id}")
-    public ResponseEntity<CashMovement> getMovementByUserId(@PathVariable Long id) {
-        List<CashMovement> movements = cashMovementService.getCashMovementsByUserId(id);
-        return ResponseEntity.ok(movements.get(0));
+    @GetMapping("/doctor/{doctorId}/incomes")
+    public ResponseEntity<List<CashMovement>> getDoctorIncomes(@PathVariable Long doctorId) {
+        List<CashMovement> incomes = cashMovementService.getCashMovementsByUserId(doctorId);
+        return ResponseEntity.ok(incomes);
     }
 }
