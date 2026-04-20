@@ -41,8 +41,11 @@ public class ReceiptService {
         Patient patient = patientRepository.findById(dto.getPatientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        User doctor = null;
+        if (dto.getDoctorId() != null) {
+            doctor = userRepository.findById(dto.getDoctorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Doctor no encontrado"));
+        }
 
         BigDecimal convertedAmount = null;
 
@@ -65,7 +68,7 @@ public class ReceiptService {
         receipt.setExchangeRate(dto.getExchangeRate());
         receipt.setConvertedAmount(convertedAmount);
         receipt.setPatient(patient);
-        receipt.setUser(user);
+        receipt.setDoctor(doctor);
         receipt.setPaymentMethod(dto.getPaymentMethod());
 
         Receipt savedReceipt = receiptRepository.save(receipt);
@@ -130,7 +133,8 @@ public class ReceiptService {
                 savedReceipt.getExchangeRate(),
                 savedReceipt.getConvertedAmount(),
                 savedReceipt.getPatient().getFullName(),
-                savedReceipt.getPatient().getDni()
+                savedReceipt.getPatient().getDni(),
+                savedReceipt.getDoctor() != null ? savedReceipt.getDoctor().getId() : null
         );
     }
 
@@ -151,7 +155,8 @@ public class ReceiptService {
                         r.getExchangeRate(),
                         r.getConvertedAmount(),
                         r.getPatient().getFullName(),
-                        r.getPatient().getDni()
+                        r.getPatient().getDni(),
+                        r.getDoctor() != null ? r.getDoctor().getId() : null
                 ))
                 .toList();
     }
@@ -160,8 +165,6 @@ public class ReceiptService {
 
         Receipt receipt = receiptRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recibo no encontrado"));
-;
-        String dni = receipt.getPatient().getDni();
 
         return new ReceiptResponseDTO(
                 receipt.getId(),
@@ -171,7 +174,8 @@ public class ReceiptService {
                 receipt.getExchangeRate(),
                 receipt.getConvertedAmount(),
                 receipt.getPatient().getFullName(),
-                receipt.getPatient().getDni()
+                receipt.getPatient().getDni(),
+                receipt.getDoctor() != null ? receipt.getDoctor().getId() : null
         );
     }
 

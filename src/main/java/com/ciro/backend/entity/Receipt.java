@@ -31,9 +31,10 @@ public class Receipt {
     @Column(name = "currency_type")
     private CurrencyType currencyType;
 
+    // Cambiamos el id_user viejo por el id_doctor
     @ManyToOne
-    @JoinColumn(name = "id_user")
-    private User user;
+    @JoinColumn(name = "id_doctor")
+    private User doctor;
 
     @Column(name = "exchange_rate", precision = 10, scale = 2)
     private BigDecimal exchangeRate;
@@ -97,12 +98,12 @@ public class Receipt {
         this.currencyType = currencyType;
     }
 
-    public User getUser() {
-        return user;
+    public User getDoctor() {
+        return doctor;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setDoctor(User doctor) {
+        this.doctor = doctor;
     }
 
     public BigDecimal getExchangeRate() {

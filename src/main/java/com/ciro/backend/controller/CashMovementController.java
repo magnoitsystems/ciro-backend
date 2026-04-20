@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public class CashMovementController {
         return ResponseEntity.ok(cashMovementService.getCashMovements(doctorId, period));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/report/pdf")
     public ResponseEntity<byte[]> downloadCashReport(
             @RequestParam(required = false) Long doctorId,
@@ -58,5 +60,11 @@ public class CashMovementController {
     public ResponseEntity<CashMovementDetailDTO> getMovementDetail(@PathVariable Long id) {
         CashMovementDetailDTO detail = cashMovementService.getMovementDetail(id);
         return ResponseEntity.ok(detail);
+    }
+
+    @GetMapping("/user/{id}")
+    public ResponseEntity<CashMovement> getMovementByUserId(@PathVariable Long id) {
+        List<CashMovement> movements = cashMovementService.getCashMovementsByUserId(id);
+        return ResponseEntity.ok(movements.get(0));
     }
 }

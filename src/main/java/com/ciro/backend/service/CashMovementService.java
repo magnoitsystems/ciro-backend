@@ -2,11 +2,13 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.CashMovementDetailDTO;
 import com.ciro.backend.entity.CashMovement;
+import com.ciro.backend.entity.User;
 import com.ciro.backend.enums.*;
 import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.BillRepository;
 import com.ciro.backend.repository.CashMovementRepository;
 import com.ciro.backend.repository.ReceiptRepository;
+import com.ciro.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,10 @@ public class CashMovementService {
     private BillRepository billRepository;
     @Autowired
     private ReceiptRepository receiptRepository;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
 
 
     public void createMovement(BigDecimal amount, CurrencyType currency, PaymentMethod method,
@@ -131,5 +137,12 @@ public class CashMovementService {
                 .orElseThrow(() -> new RuntimeException("Movimiento no encontrado"));
 
         return createSplit(movement.getAmount(), (int)(doctorPercentage*100) + "/" + (int)((1-doctorPercentage)*100), doctorPercentage);
+    }
+
+    public List<CashMovement> getCashMovementsByUserId(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("El usuario con ID " + id + " no existe"));
+
+        List<CashMovement> movements = cashMovementRepository.findByUserId()
     }
 }

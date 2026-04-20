@@ -13,10 +13,9 @@ public class ReceiptResponseDTO {
     private CurrencyType currencyType;
     private BigDecimal exchangeRate;
     private BigDecimal convertedAmount;
-
-    // ¡NUEVOS CAMPOS!
     private String patientFullName;
     private String patientDni;
+    private Long doctorId;
 
     public ReceiptResponseDTO(Long id,
                               LocalDate receiptDate,
@@ -25,7 +24,8 @@ public class ReceiptResponseDTO {
                               BigDecimal exchangeRate,
                               BigDecimal convertedAmount,
                               String patientFullName,
-                              String patientDni) {
+                              String patientDni,
+                              Long doctorId) {
         this.id = id;
         this.receiptDate = receiptDate;
         this.amount = amount;
@@ -34,9 +34,9 @@ public class ReceiptResponseDTO {
         this.convertedAmount = convertedAmount;
         this.patientFullName = patientFullName;
         this.patientDni = patientDni;
+        this.doctorId = doctorId;
     }
 
-    // Getters
     public Long getId() { return id; }
     public LocalDate getReceiptDate() { return receiptDate; }
     public BigDecimal getAmount() { return amount; }
@@ -45,4 +45,5 @@ public class ReceiptResponseDTO {
     public BigDecimal getConvertedAmount() { return convertedAmount; }
     public String getPatientFullName() { return patientFullName; }
     public String getPatientDni() { return patientDni; }
+    public Long getDoctorId() { return doctorId; }
 }

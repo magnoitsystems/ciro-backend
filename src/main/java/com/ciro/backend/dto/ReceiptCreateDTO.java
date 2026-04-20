@@ -13,11 +13,11 @@ public class ReceiptCreateDTO {
     private String observations;
     private CurrencyType currencyType;
     private Long patientId;
-    private Long userId;
+    private Long doctorId;
     private BigDecimal exchangeRate;
     private PaymentMethod paymentMethod;
     private boolean payDollarDebtWithPesos;
-    
+
     public boolean isPayDollarDebtWithPesos() { return payDollarDebtWithPesos; }
     public void setPayDollarDebtWithPesos(boolean payDollarDebtWithPesos) { this.payDollarDebtWithPesos = payDollarDebtWithPesos; }
     public PaymentMethod getPaymentMethod() { return paymentMethod; }
@@ -34,6 +34,6 @@ public class ReceiptCreateDTO {
     public void setCurrencyType(CurrencyType currencyType) { this.currencyType = currencyType; }
     public Long getPatientId() { return patientId; }
     public void setPatientId(Long patientId) { this.patientId = patientId; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public Long getDoctorId() { return doctorId; }
+    public void setDoctorId(Long doctorId) { this.doctorId = doctorId; }
 }
