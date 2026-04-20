@@ -1,5 +1,6 @@
 package com.ciro.backend.service;
 
+import com.ciro.backend.dto.CashBalanceDTO;
 import com.ciro.backend.dto.CashMovementDetailDTO;
 import com.ciro.backend.entity.CashMovement;
 import com.ciro.backend.entity.User;
@@ -11,7 +12,6 @@ import com.ciro.backend.repository.ReceiptRepository;
 import com.ciro.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -48,14 +48,6 @@ public class CashMovementService {
         cashMovementRepository.save(movement);
     }
 
-    @Transactional
-    public void assignDoctor(Long movementId, Long doctorId) {
-        CashMovement movement = cashMovementRepository.findById(movementId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movimiento de caja no encontrado"));
-        movement.setDoctorId(doctorId);
-        cashMovementRepository.save(movement);
-    }
-
     public List<CashMovement> getCashMovements(Long doctorId, ReportPeriod period) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startDate;
@@ -80,6 +72,40 @@ public class CashMovementService {
         }
 
         return cashMovementRepository.findByFilters(doctorId, startDate, endDate);
+    }
+
+    public CashBalanceDTO getCashBalance(ReportPeriod period) {
+        List<CashMovement> movements = getCashMovements(null, period);
+
+        BigDecimal ingresosPesos = BigDecimal.ZERO;
+        BigDecimal egresosPesos = BigDecimal.ZERO;
+        BigDecimal ingresosDolares = BigDecimal.ZERO;
+        BigDecimal egresosDolares = BigDecimal.ZERO;
+
+        for (CashMovement movement : movements) {
+            if (movement.getCurrencyType() == CurrencyType.PESOS) {
+                if (movement.getType() == CashMovementType.INGRESO) {
+                    ingresosPesos = ingresosPesos.add(movement.getAmount());
+                } else if (movement.getType() == CashMovementType.EGRESO) {
+                    egresosPesos = egresosPesos.add(movement.getAmount());
+                }
+            } else if (movement.getCurrencyType() == CurrencyType.DOLARES) {
+                if (movement.getType() == CashMovementType.INGRESO) {
+                    ingresosDolares = ingresosDolares.add(movement.getAmount());
+                } else if (movement.getType() == CashMovementType.EGRESO) {
+                    egresosDolares = egresosDolares.add(movement.getAmount());
+                }
+            }
+        }
+
+        BigDecimal balancePesos = ingresosPesos.subtract(egresosPesos);
+        BigDecimal balanceDolares = ingresosDolares.subtract(egresosDolares);
+
+        return new CashBalanceDTO(
+                balancePesos, balanceDolares,
+                ingresosPesos, egresosPesos,
+                ingresosDolares, egresosDolares
+        );
     }
 
     public CashMovementDetailDTO getMovementDetail(Long id) {

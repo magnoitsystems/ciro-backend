@@ -1,5 +1,6 @@
 package com.ciro.backend.controller;
 
+import com.ciro.backend.dto.CashBalanceDTO;
 import com.ciro.backend.dto.CashMovementDetailDTO;
 import com.ciro.backend.entity.CashMovement;
 import com.ciro.backend.enums.ReportPeriod;
@@ -50,12 +51,6 @@ public class CashMovementController {
         return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
 
-    @PatchMapping("/{id}/assign-doctor")
-    public ResponseEntity<Void> assignDoctor(@PathVariable Long id, @RequestParam Long doctorId) {
-        cashMovementService.assignDoctor(id, doctorId);
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<CashMovementDetailDTO> getMovementDetail(@PathVariable Long id) {
         CashMovementDetailDTO detail = cashMovementService.getMovementDetail(id);
@@ -66,5 +61,11 @@ public class CashMovementController {
     public ResponseEntity<List<CashMovement>> getDoctorIncomes(@PathVariable Long doctorId) {
         List<CashMovement> incomes = cashMovementService.getCashMovementsByUserId(doctorId);
         return ResponseEntity.ok(incomes);
+    }
+
+    @GetMapping("/balance")
+    public ResponseEntity<CashBalanceDTO> getBalance(ReportPeriod period) {
+        CashBalanceDTO response = cashMovementService.getCashBalance(period);
+        return ResponseEntity.ok(response);
     }
 }

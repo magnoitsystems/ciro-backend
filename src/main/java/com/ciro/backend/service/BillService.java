@@ -82,14 +82,15 @@ public class BillService {
 
         Bill savedBill = billRepository.save(bill);
 
-        if (savedBill.getStatus() == BillStatus.PAGADO && savedBill.getFrom() == OriginType.CAJA) {
+        if (savedBill.getStatus() == BillStatus.PAGADO) {
             cashMovementService.createMovement(
                     savedBill.getAmount(),
                     savedBill.getCurrencyType(),
                     savedBill.getPaymentMethod(),
                     savedBill.getId(),
                     CashMovementType.EGRESO,
-                    "Egreso por: " + savedBill.getDescription()
+                    "Egreso por: " + savedBill.getDescription(),
+                    null
             );
         }
 
@@ -169,7 +170,7 @@ public class BillService {
 
         Bill updatedBill = billRepository.save(existingBill);
 
-        if (updatedBill.getStatus() == BillStatus.PAGADO && updatedBill.getFrom() == OriginType.CAJA) {
+        if (updatedBill.getStatus() == BillStatus.PAGADO) {
             boolean yaExiste = cashMovementRepository.existsByTypeAndReferenceId(CashMovementType.EGRESO, updatedBill.getId());
 
             if (!yaExiste) {
@@ -179,7 +180,8 @@ public class BillService {
                         updatedBill.getPaymentMethod(),
                         updatedBill.getId(),
                         CashMovementType.EGRESO,
-                        "Egreso por: " + updatedBill.getDescription()
+                        "Egreso por: " + updatedBill.getDescription(),
+                        null
                 );
             }
         }
