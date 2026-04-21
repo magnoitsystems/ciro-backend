@@ -10,7 +10,6 @@ import com.ciro.backend.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -44,8 +43,8 @@ public class BudgetService {
 
         Budget budget = new Budget();
         budget.setPatient(patient);
-        budget.setUploadedDate(dto.getUploadedDate() != null ? dto.getUploadedDate() : LocalDate.now());
-        budget.setDate(dto.getDate());
+        budget.setTitle(dto.getTitle());
+        budget.setDate(dto.getDate() != null ? dto.getDate() : LocalDate.now());
         budget.setStatus(dto.getStatus());
 
         if (dto.getFile() != null && !dto.getFile().isEmpty()) {
@@ -72,8 +71,7 @@ public class BudgetService {
             budget.setPatient(patient);
         }
 
-        if (dto.getUploadedDate() != null) budget.setUploadedDate(dto.getUploadedDate());
-
+        if (dto.getTitle() != null) budget.setTitle(dto.getTitle());
         if (dto.getDate() != null) budget.setDate(dto.getDate());
         if (dto.getStatus() != null) budget.setStatus(dto.getStatus());
 
@@ -93,8 +91,8 @@ public class BudgetService {
     private BudgetResponseDTO mapToDTO(Budget budget) {
         BudgetResponseDTO dto = new BudgetResponseDTO();
         dto.setId(budget.getId());
+        dto.setTitle(budget.getTitle());
         dto.setFileUrl(budget.getFile_url());
-        dto.setUploadedDate(budget.getUploadedDate());
         dto.setDate(budget.getDate());
         dto.setStatus(budget.getStatus());
 
@@ -116,12 +114,10 @@ public class BudgetService {
         return budgets.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-
     @Transactional
     public void deleteById(Long id) {
         Budget budget = budgetRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Presupuesto no encontrado"));
         budgetRepository.delete(budget);
     }
-
 }

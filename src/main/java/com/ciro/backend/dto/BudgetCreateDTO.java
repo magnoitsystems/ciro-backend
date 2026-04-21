@@ -5,14 +5,14 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 
 public class BudgetCreateDTO {
-    private LocalDate uploadedDate;
+    private String title;
     private LocalDate date;
     private BudgetStatus status;
     private Long patientId;
     private MultipartFile file;
 
-    public LocalDate getUploadedDate() { return uploadedDate; }
-    public void setUploadedDate(LocalDate uploadedDate) { this.uploadedDate = uploadedDate; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }

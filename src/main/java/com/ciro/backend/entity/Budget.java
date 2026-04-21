@@ -11,8 +11,8 @@ public class Budget {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "uploaded_date")
-    private LocalDate uploadedDate;
+    @Column(name = "title")
+    private String title;
 
     @Column(name = "date")
     private LocalDate date;
@@ -30,8 +30,8 @@ public class Budget {
 
     public Long getId() { return id; }
 
-    public LocalDate getUploadedDate() { return uploadedDate; }
-    public void setUploadedDate(LocalDate uploadedDate) { this.uploadedDate = uploadedDate; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }
