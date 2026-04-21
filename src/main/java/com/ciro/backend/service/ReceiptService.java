@@ -135,7 +135,7 @@ public class ReceiptService {
                 savedReceipt.getConvertedAmount(),
                 savedReceipt.getPatient().getFullName(),
                 savedReceipt.getPatient().getDni(),
-                savedReceipt.getDoctor() != null ? savedReceipt.getDoctor().getId() : null
+                savedReceipt.getDoctor() != null ? savedReceipt.getDoctor().getName() + savedReceipt.getDoctor().getLastname() : null
         );
     }
 
@@ -157,7 +157,7 @@ public class ReceiptService {
                         r.getConvertedAmount(),
                         r.getPatient().getFullName(),
                         r.getPatient().getDni(),
-                        r.getDoctor() != null ? r.getDoctor().getId() : null
+                        r.getDoctor() != null ? r.getDoctor().getName() + r.getDoctor().getLastname() : null
                 ))
                 .toList();
     }
@@ -176,7 +176,7 @@ public class ReceiptService {
                 receipt.getConvertedAmount(),
                 receipt.getPatient().getFullName(),
                 receipt.getPatient().getDni(),
-                receipt.getDoctor() != null ? receipt.getDoctor().getId() : null
+                receipt.getDoctor() != null ? receipt.getDoctor().getName() + receipt.getDoctor().getLastname() : null
         );
     }
 
