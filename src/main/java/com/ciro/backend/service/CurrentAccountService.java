@@ -62,6 +62,12 @@ public class CurrentAccountService {
             mov.setTransactionAmountDollars(acc.getTransactionAmountDollars() != null ? acc.getTransactionAmountDollars() : BigDecimal.ZERO);
             mov.setBalancePesos(acc.getBalancePesos() != null ? acc.getBalancePesos() : BigDecimal.ZERO);
             mov.setBalanceDollars(acc.getBalanceDollars() != null ? acc.getBalanceDollars() : BigDecimal.ZERO);
+            if (acc.getReceipt() != null) {
+                mov.setReceiptId(acc.getReceipt().getId());
+            }
+            if (acc.getVoucher() != null) {
+                mov.setVoucherId(acc.getVoucher().getId());
+            }
 
             if (acc.getType() == CurrentAccountType.VOUCHER && acc.getVoucher() != null) {
                 Voucher v = acc.getVoucher();

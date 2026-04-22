@@ -6,6 +6,8 @@ import java.time.LocalDate;
 
 public class CurrentAccountMovementDTO {
     private Long id;
+    private Long receiptId;
+    private Long voucherId;
     private LocalDate date;
     private CurrentAccountType type;
     private String detail;
@@ -42,4 +44,20 @@ public class CurrentAccountMovementDTO {
 
     public Boolean getCanceled() { return canceled; }
     public void setCanceled(Boolean canceled) { this.canceled = canceled; }
+
+    public Long getReceiptId() {
+        return receiptId;
+    }
+
+    public void setReceiptId(Long receiptId) {
+        this.receiptId = receiptId;
+    }
+
+    public Long getVoucherId() {
+        return voucherId;
+    }
+
+    public void setVoucherId(Long voucherId) {
+        this.voucherId = voucherId;
+    }
 }
