@@ -96,6 +96,7 @@ public class ReceiptService {
 
         if (isPesoToDollarConversion) {
             txDollars = convertedAmount;
+            txPesos = dto.getAmount();
             newBalanceDollars = prevBalanceDollars.subtract(convertedAmount);
         } else {
             if (dto.getCurrencyType() == CurrencyType.PESOS) {
