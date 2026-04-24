@@ -1,6 +1,7 @@
 package com.ciro.backend.dto;
 
 import com.ciro.backend.enums.CurrencyType;
+import com.ciro.backend.enums.PaymentMethod;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -16,6 +17,8 @@ public class ReceiptResponseDTO {
     private String patientFullName;
     private String patientDni;
     private String doctorFullName;
+    private PaymentMethod paymentMethod;
+    private String observations;
 
     public ReceiptResponseDTO(Long id,
                               LocalDate receiptDate,
@@ -25,7 +28,9 @@ public class ReceiptResponseDTO {
                               BigDecimal convertedAmount,
                               String patientFullName,
                               String patientDni,
-                              String doctorFullName) {
+                              String doctorFullName,
+                              PaymentMethod paymentMethod,
+                              String observations) {
         this.id = id;
         this.receiptDate = receiptDate;
         this.amount = amount;
@@ -35,6 +40,8 @@ public class ReceiptResponseDTO {
         this.patientFullName = patientFullName;
         this.patientDni = patientDni;
         this.doctorFullName = doctorFullName;
+        this.paymentMethod = paymentMethod;
+        this.observations = observations;
     }
 
     public Long getId() { return id; }
@@ -46,4 +53,7 @@ public class ReceiptResponseDTO {
     public String getPatientFullName() { return patientFullName; }
     public String getPatientDni() { return patientDni; }
     public String getDoctorFullName() { return doctorFullName; }
+    public PaymentMethod getPaymentMethod() { return paymentMethod; }
+    public String getObservations() { return observations; }
+
 }
