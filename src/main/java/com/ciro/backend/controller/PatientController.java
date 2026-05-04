@@ -62,4 +62,10 @@ public class PatientController {
         List<PatientDebtorDTO> debtors = patientService.getDebtorPatients();
         return ResponseEntity.ok(debtors);
     }
+
+    @GetMapping("/debtors/doctor/{doctorId}")
+    public ResponseEntity<List<PatientDebtorDTO>> getDebtorPatientsByDoctor(@PathVariable Long doctorId) {
+        List<PatientDebtorDTO> debtors = patientService.getDebtorPatientsByDoctor(doctorId);
+        return ResponseEntity.ok(debtors);
+    }
 }

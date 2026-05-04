@@ -39,15 +39,17 @@ public class VoucherService {
         Patient patient = patientRepository.findById(dto.getPatientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 
-        User professional = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("Profesional no encontrado"));
-
         Voucher voucher = new Voucher();
         voucher.setPatient(patient);
-        voucher.setUser(professional);
         voucher.setVoucherDate(dto.getVoucherDate() != null ? dto.getVoucherDate() : LocalDate.now());
         voucher.setObservations(dto.getObservations());
         voucher.setCurrencyType(dto.getCurrencyType());
+
+        if (dto.getUserId() != null) {
+            User professional = userRepository.findById(dto.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Profesional no encontrado"));
+            voucher.setUser(professional);
+        }
 
         Voucher savedVoucher = voucherRepository.save(voucher);
 
@@ -111,7 +113,13 @@ public class VoucherService {
         VoucherDTO responseDTO = new VoucherDTO();
         responseDTO.setId(voucher.getId());
         responseDTO.setPatientFullName(voucher.getPatient().getFullName());
-        responseDTO.setProfessionalFullName(voucher.getUser().getName() + " " + voucher.getUser().getLastname());
+
+        if (voucher.getUser() != null) {
+            responseDTO.setProfessionalFullName(voucher.getUser().getName() + " " + voucher.getUser().getLastname());
+        } else {
+            responseDTO.setProfessionalFullName("No especificado");
+        }
+
         responseDTO.setVoucherDate(voucher.getVoucherDate());
         responseDTO.setCurrency(voucher.getCurrencyType());
         responseDTO.setObservations(voucher.getObservations());

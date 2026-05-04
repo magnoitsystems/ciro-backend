@@ -2,6 +2,7 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.*;
 import com.ciro.backend.entity.*;
+import com.ciro.backend.enums.CurrentAccountType;
 import com.ciro.backend.enums.TaskPriority;
 import com.ciro.backend.enums.TaskStatus;
 import com.ciro.backend.exception.DuplicateResourceException;
@@ -209,6 +210,74 @@ public class PatientService {
                 dto.setDebtDolares(debtDolares);
 
                 debtors.add(dto);
+            }
+        }
+
+        return debtors;
+    }
+
+    public List<PatientDebtorDTO> getDebtorPatientsByDoctor(Long doctorId) {
+        Label deudorLabel = labelRepository.findByLabel("Deudor").orElse(null);
+
+        if (deudorLabel == null) {
+            return new ArrayList<>();
+        }
+
+        User doctor = userRepository.findById(doctorId).orElse(null);
+        if (doctor == null) {
+            return new ArrayList<>();
+        }
+
+        List<LabelPatient> relations = labelPatientRepository.findLabelPatientByLabel(deudorLabel.getId());
+        List<PatientDebtorDTO> debtors = new ArrayList<>();
+
+        for (LabelPatient relation : relations) {
+            Patient patient = relation.getPatient();
+
+            com.ciro.backend.entity.CurrentAccount lastRecord = currentAccountRepository
+                    .findTopByPatientIdOrderByIdDesc(patient.getId())
+                    .orElse(null);
+
+            BigDecimal debtPesos = BigDecimal.ZERO;
+            BigDecimal debtDolares = BigDecimal.ZERO;
+
+            if (lastRecord != null && (lastRecord.getCanceled() == null || !lastRecord.getCanceled())) {
+                debtPesos = lastRecord.getBalancePesos() != null ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
+                debtDolares = lastRecord.getBalanceDollars() != null ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
+            }
+
+            if (debtPesos.compareTo(BigDecimal.ZERO) > 0 || debtDolares.compareTo(BigDecimal.ZERO) > 0) {
+
+                List<CurrentAccount> patientHistory = currentAccountRepository.findByPatientId(patient.getId());
+                boolean owesThisDoctor = false;
+
+                for (int i = patientHistory.size() - 1; i >= 0; i--) {
+                    CurrentAccount record = patientHistory.get(i);
+
+                    if (record.getCanceled() != null && record.getCanceled()) {
+                        break;
+                    }
+
+                    if (record.getType() == CurrentAccountType.VOUCHER && record.getVoucher() != null) {
+                        if (record.getVoucher().getUser() != null && record.getVoucher().getUser().getId().equals(doctorId)) {
+                            owesThisDoctor = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (owesThisDoctor) {
+                    PatientDebtorDTO dto = new PatientDebtorDTO();
+                    dto.setId(patient.getId());
+                    dto.setDni(patient.getDni());
+                    dto.setFullName(patient.getFullName());
+                    dto.setDebtPesos(debtPesos);
+                    dto.setDebtDolares(debtDolares);
+                    dto.setDoctorId(doctor.getId());
+                    dto.setDoctorName(doctor.getName() + " " + doctor.getLastname());
+
+                    debtors.add(dto);
+                }
             }
         }
 

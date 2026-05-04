@@ -8,6 +8,8 @@ public class PatientDebtorDTO {
     private String fullName;
     private BigDecimal debtPesos;
     private BigDecimal debtDolares;
+    private Long doctorId;
+    private String doctorName;
 
     public Long getId() {
         return id;
@@ -46,5 +48,21 @@ public class PatientDebtorDTO {
 
     public void setDebtDolares(BigDecimal debtDolares) {
         this.debtDolares = debtDolares;
+    }
+
+    public Long getDoctorId() {
+        return doctorId;
+    }
+
+    public void setDoctorId(Long doctorId) {
+        this.doctorId = doctorId;
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
     }
 }
