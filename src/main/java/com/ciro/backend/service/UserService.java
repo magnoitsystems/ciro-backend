@@ -2,6 +2,7 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.UserCreateDTO;
 import com.ciro.backend.dto.UserResponseDTO;
+import com.ciro.backend.dto.UserUpdateDTO;
 import com.ciro.backend.entity.User;
 import com.ciro.backend.enums.Role;
 import com.ciro.backend.exception.DuplicateResourceException;
@@ -81,6 +82,32 @@ public class UserService {
             user.setRole(Role.USER);
         } else {
             user.setRole(Role.ADMIN);
+        }
+
+        User updatedUser = userRepository.save(user);
+        return mapToResponseDTO(updatedUser);
+    }
+
+    @Transactional
+    public UserResponseDTO updateUser(Long id, UserUpdateDTO dto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el usuario con ID: " + id));
+
+        if (dto.getUsername() != null && !dto.getUsername().equals(user.getUsername())) {
+            if (userRepository.existsByUsername(dto.getUsername())) {
+                throw new DuplicateResourceException("El username " + dto.getUsername() + " ya está en uso");
+            }
+            user.setUsername(dto.getUsername());
+        }
+
+        if (dto.getName() != null) user.setName(dto.getName());
+        if (dto.getLastname() != null) user.setLastname(dto.getLastname());
+        if (dto.getColor() != null) user.setColor(dto.getColor());
+        if (dto.getRole() != null) user.setRole(dto.getRole());
+
+        if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
+            String hashedPassword = passwordService.hashPassword(dto.getPassword());
+            user.setHashedPassword(hashedPassword);
         }
 
         User updatedUser = userRepository.save(user);

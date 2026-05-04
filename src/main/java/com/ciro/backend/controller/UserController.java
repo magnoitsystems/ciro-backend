@@ -2,6 +2,7 @@ package com.ciro.backend.controller;
 
 import com.ciro.backend.dto.UserCreateDTO;
 import com.ciro.backend.dto.UserResponseDTO;
+import com.ciro.backend.dto.UserUpdateDTO;
 import com.ciro.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -42,6 +43,12 @@ public class UserController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<UserResponseDTO> toggleUserRole(@PathVariable Long id) {
         UserResponseDTO updatedUser = userService.toggleUserRole(id);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody UserUpdateDTO dto) {
+        UserResponseDTO updatedUser = userService.updateUser(id, dto);
         return ResponseEntity.ok(updatedUser);
     }
 }
