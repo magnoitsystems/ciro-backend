@@ -1,8 +1,7 @@
 package com.ciro.backend.dto;
 
-import com.ciro.backend.enums.DocumentType;
-import com.ciro.backend.enums.HealthInsurance;
-import com.ciro.backend.enums.PatientFrom;
+import com.ciro.backend.enums.*;
+
 import java.time.LocalDate;
 
 public class PatientResponseDTO {
@@ -19,6 +18,8 @@ public class PatientResponseDTO {
     private String observations;
     private Long createdById;
     private String createdByName;
+    private ReasonForConsultation reasonForConsultation;
+    private AppointmentStatus appointmentStatus;
 
     public Long getId() {
         return id;
@@ -122,5 +123,21 @@ public class PatientResponseDTO {
 
     public void setCreatedByName(String createdByName) {
         this.createdByName = createdByName;
+    }
+
+    public AppointmentStatus getAppointmentStatus(){
+        return appointmentStatus;
+    }
+
+    public void setAppointmentStatus(AppointmentStatus appointmentStatus){
+        this.appointmentStatus = appointmentStatus;
+    }
+
+    public ReasonForConsultation getReasonForConsultation() {
+        return reasonForConsultation;
+    }
+
+    public void setReasonForConsultation(ReasonForConsultation reasonForConsultation) {
+        this.reasonForConsultation = reasonForConsultation;
     }
 }

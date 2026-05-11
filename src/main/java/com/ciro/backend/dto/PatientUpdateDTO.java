@@ -1,7 +1,10 @@
 package com.ciro.backend.dto;
 
+import com.ciro.backend.enums.AppointmentStatus;
 import com.ciro.backend.enums.HealthInsurance;
 import com.ciro.backend.enums.PatientFrom;
+import com.ciro.backend.enums.ReasonForConsultation;
+
 import java.time.LocalDate;
 
 public class PatientUpdateDTO {
@@ -14,6 +17,8 @@ public class PatientUpdateDTO {
     private HealthInsurance obraSocial;
     private PatientFrom from;
     private String observations;
+    private ReasonForConsultation reasonForConsultation;
+    private AppointmentStatus appointmentStatus;
 
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
@@ -38,4 +43,9 @@ public class PatientUpdateDTO {
 
     public String getObservations() { return observations; }
     public void setObservations(String observations) { this.observations = observations; }
+
+    public ReasonForConsultation getReasonForConsultation() { return reasonForConsultation; }
+    public void setReasonForConsultation(ReasonForConsultation reasonForConsultation) { this.reasonForConsultation = reasonForConsultation; }
+    public AppointmentStatus getAppointmentStatus() { return appointmentStatus; }
+    public void setAppointmentStatus(AppointmentStatus appointmentStatus) { this.appointmentStatus = appointmentStatus; }
 }

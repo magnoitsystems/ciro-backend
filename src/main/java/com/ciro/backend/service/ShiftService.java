@@ -4,10 +4,7 @@ import com.ciro.backend.dto.NoteCreateDTO;
 import com.ciro.backend.dto.ShiftCreateDTO;
 import com.ciro.backend.dto.ShiftResponseDTO;
 import com.ciro.backend.dto.ShiftWidgetDTO;
-import com.ciro.backend.entity.Note;
-import com.ciro.backend.entity.Patient;
-import com.ciro.backend.entity.Shift;
-import com.ciro.backend.entity.User;
+import com.ciro.backend.entity.*;
 import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.NoteRepository;
 import com.ciro.backend.repository.PatientRepository;
@@ -34,6 +31,10 @@ public class ShiftService {
     private NoteService noteService;
     @Autowired
     private NoteRepository noteRepository;
+    @Autowired
+    private LabelService labelService;
+    @Autowired
+    private LabelPatientService labelPatientService;
 
     public List<ShiftResponseDTO> getAllShift() {
         return shiftRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
@@ -64,6 +65,18 @@ public class ShiftService {
         if (patient == null) {
             throw new ResourceNotFoundException("Paciente no encontrado con DNI: " + dto.getPatientDni());
         }
+
+        patient.setAppointmentStatus(com.ciro.backend.enums.AppointmentStatus.SACO_TURNO);
+        Patient savedPatient = patientRepository.save(patient);
+
+        Label sacoTurnoLabel = labelService.getOrCreateLabel(com.ciro.backend.enums.AppointmentStatus.SACO_TURNO.name());
+        LabelPatient lpSacoTurno = new LabelPatient();
+        lpSacoTurno.setPatient(savedPatient);
+        lpSacoTurno.setLabel(sacoTurnoLabel);
+        labelPatientService.assignLabelToPatient(lpSacoTurno);
+
+        patient.setAppointmentStatus(com.ciro.backend.enums.AppointmentStatus.SACO_TURNO);
+        patientRepository.save(patient);
 
         User doctor = userRepository.findById(dto.getDoctorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor no existe"));

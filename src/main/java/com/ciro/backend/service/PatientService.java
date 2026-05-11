@@ -57,6 +57,8 @@ public class PatientService {
         newPatient.setObraSocial(dto.getObraSocial());
         newPatient.setObservations(dto.getObservations());
         newPatient.setCreatedBy(creator);
+        newPatient.setReasonForConsultation(dto.getReasonForConsultation());
+        newPatient.setAppointmentStatus(dto.getAppointmentStatus());
 
         if (dto.getFrom() != null) {
             newPatient.setFrom(dto.getFrom());
@@ -89,6 +91,24 @@ public class PatientService {
             automaticTaskDTO.setPriority(TaskPriority.LOW);
             automaticTaskDTO.setTitle("Buscar información de cómo nos conocieron");
             createTask(automaticTaskDTO);
+        }
+
+        if (dto.getReasonForConsultation() != null) {
+            Label reasonLabel = labelService.getOrCreateLabel(dto.getReasonForConsultation().name());
+
+            LabelPatient lpReason = new LabelPatient();
+            lpReason.setPatient(savedPatient);
+            lpReason.setLabel(reasonLabel);
+            labelPatientService.assignLabelToPatient(lpReason);
+        }
+
+        if (dto.getAppointmentStatus() != null) {
+            Label statusLabel = labelService.getOrCreateLabel(dto.getAppointmentStatus().name());
+
+            LabelPatient lpStatus = new LabelPatient();
+            lpStatus.setPatient(savedPatient);
+            lpStatus.setLabel(statusLabel);
+            labelPatientService.assignLabelToPatient(lpStatus);
         }
 
         return mapToResponseDTO(savedPatient);
@@ -137,6 +157,8 @@ public class PatientService {
         existingPatient.setObraSocial(updateDTO.getObraSocial());
         existingPatient.setFrom(updateDTO.getFrom());
         existingPatient.setObservations(updateDTO.getObservations());
+        existingPatient.setReasonForConsultation(updateDTO.getReasonForConsultation());
+        existingPatient.setAppointmentStatus(updateDTO.getAppointmentStatus());
 
         Patient updatedPatient = patientRepository.save(existingPatient);
 
@@ -161,6 +183,30 @@ public class PatientService {
                 lpFrom.setPatient(updatedPatient);
                 lpFrom.setLabel(fromLabel);
                 labelPatientService.assignLabelToPatient(lpFrom);
+            }
+        }
+
+        if (updateDTO.getReasonForConsultation() != null) {
+            Label reasonLabel = labelService.getOrCreateLabel(updateDTO.getReasonForConsultation().name());
+
+            LabelPatient existingLp = labelPatientService.findByPatientIdAndLabelId(updatedPatient.getId(), reasonLabel.getId());
+            if (existingLp == null) {
+                LabelPatient lpReason = new LabelPatient();
+                lpReason.setPatient(updatedPatient);
+                lpReason.setLabel(reasonLabel);
+                labelPatientService.assignLabelToPatient(lpReason);
+            }
+        }
+
+        if (updateDTO.getAppointmentStatus() != null) {
+            Label statusLabel = labelService.getOrCreateLabel(updateDTO.getAppointmentStatus().name());
+
+            LabelPatient existingLp = labelPatientService.findByPatientIdAndLabelId(updatedPatient.getId(), statusLabel.getId());
+            if (existingLp == null) {
+                LabelPatient lpStatus = new LabelPatient();
+                lpStatus.setPatient(updatedPatient);
+                lpStatus.setLabel(statusLabel);
+                labelPatientService.assignLabelToPatient(lpStatus);
             }
         }
 
@@ -297,6 +343,8 @@ public class PatientService {
         dto.setObraSocial(patient.getObraSocial());
         dto.setFrom(patient.getFrom());
         dto.setObservations(patient.getObservations());
+        dto.setReasonForConsultation(patient.getReasonForConsultation());
+        dto.setAppointmentStatus(patient.getAppointmentStatus());
 
         if (patient.getCreatedBy() != null) {
             dto.setCreatedById(patient.getCreatedBy().getId());
