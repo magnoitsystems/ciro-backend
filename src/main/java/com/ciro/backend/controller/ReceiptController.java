@@ -64,8 +64,4 @@ public class ReceiptController {
                 .body(pdfBytes);
     }
 
-    @GetMapping("/widget/weekly-revenue")
-    public ResponseEntity<RevenueWidgetDTO> getWeeklyRevenueWidget() {
-        return ResponseEntity.ok(receiptService.getWeeklyRevenueWidget());
-    }
 }

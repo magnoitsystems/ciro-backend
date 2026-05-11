@@ -2,11 +2,13 @@ package com.ciro.backend.controller;
 
 import com.ciro.backend.dto.CashBalanceDTO;
 import com.ciro.backend.dto.CashMovementDetailDTO;
+import com.ciro.backend.dto.RevenueWidgetDTO;
 import com.ciro.backend.entity.CashMovement;
 import com.ciro.backend.enums.ReportPeriod;
 import com.ciro.backend.service.CashMovementService;
 import com.ciro.backend.service.PdfGenerationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -67,5 +70,14 @@ public class CashMovementController {
     public ResponseEntity<CashBalanceDTO> getBalance(ReportPeriod period) {
         CashBalanceDTO response = cashMovementService.getCashBalance(period);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/widgets/net-revenue")
+    public ResponseEntity<RevenueWidgetDTO> getNetRevenueWidget(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        RevenueWidgetDTO widgetData = cashMovementService.getNetRevenueWidget(startDate, endDate);
+        return ResponseEntity.ok(widgetData);
     }
 }

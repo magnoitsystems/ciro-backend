@@ -2,6 +2,7 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.CashBalanceDTO;
 import com.ciro.backend.dto.CashMovementDetailDTO;
+import com.ciro.backend.dto.RevenueWidgetDTO;
 import com.ciro.backend.entity.CashMovement;
 import com.ciro.backend.entity.User;
 import com.ciro.backend.enums.*;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
@@ -172,5 +174,39 @@ public class CashMovementService {
                 .orElseThrow(() -> new ResourceNotFoundException("El usuario con ID " + id + " no existe"));
 
         return cashMovementRepository.findByDoctorIdAndType(id, CashMovementType.INGRESO);
+    }
+
+    public RevenueWidgetDTO getNetRevenueWidget(LocalDate startDate, LocalDate endDate) {
+        if (startDate == null || endDate == null) {
+            LocalDate today = LocalDate.now();
+            startDate = today.with(java.time.DayOfWeek.MONDAY);
+            endDate = today.with(java.time.DayOfWeek.SUNDAY);
+        }
+
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+
+        List<CashMovement> movements = cashMovementRepository.findByFilters(null, startDateTime, endDateTime);
+
+        BigDecimal balancePesos = BigDecimal.ZERO;
+        BigDecimal balanceDolares = BigDecimal.ZERO;
+
+        for (CashMovement movement : movements) {
+            if (movement.getCurrencyType() == CurrencyType.PESOS) {
+                if (movement.getType() == CashMovementType.INGRESO) {
+                    balancePesos = balancePesos.add(movement.getAmount());
+                } else if (movement.getType() == CashMovementType.EGRESO) {
+                    balancePesos = balancePesos.subtract(movement.getAmount());
+                }
+            } else if (movement.getCurrencyType() == CurrencyType.DOLARES) {
+                if (movement.getType() == CashMovementType.INGRESO) {
+                    balanceDolares = balanceDolares.add(movement.getAmount());
+                } else if (movement.getType() == CashMovementType.EGRESO) {
+                    balanceDolares = balanceDolares.subtract(movement.getAmount());
+                }
+            }
+        }
+
+        return new RevenueWidgetDTO(balancePesos, balanceDolares);
     }
 }

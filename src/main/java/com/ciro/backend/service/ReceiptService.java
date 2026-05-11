@@ -186,24 +186,4 @@ public class ReceiptService {
                 receipt.getObservations()
         );
     }
-
-    public RevenueWidgetDTO getWeeklyRevenueWidget() {
-        LocalDate today = LocalDate.now();
-        LocalDate startOfWeek = today.with(java.time.DayOfWeek.MONDAY);
-        LocalDate endOfWeek = today.with(java.time.DayOfWeek.SUNDAY);
-
-        List<Receipt> weeklyReceipts = receiptRepository.findByReceiptDateBetween(startOfWeek, endOfWeek);
-
-        BigDecimal totalPesos = weeklyReceipts.stream()
-                .filter(r -> r.getCurrencyType() == CurrencyType.PESOS)
-                .map(Receipt::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal totalDollars = weeklyReceipts.stream()
-                .filter(r -> r.getCurrencyType() == CurrencyType.DOLARES)
-                .map(Receipt::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        return new RevenueWidgetDTO(totalPesos, totalDollars);
-    }
 }
