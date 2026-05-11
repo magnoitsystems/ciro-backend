@@ -1,9 +1,11 @@
 package com.ciro.backend.service;
 
+import com.ciro.backend.dto.SubtaskDTO;
 import com.ciro.backend.dto.TaskCreateDTO;
 import com.ciro.backend.dto.TaskResponseDTO;
 import com.ciro.backend.dto.TaskWidgetDTO;
 import com.ciro.backend.entity.Note;
+import com.ciro.backend.entity.Subtask;
 import com.ciro.backend.entity.Task;
 import com.ciro.backend.entity.User;
 import com.ciro.backend.enums.TaskStatus;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,6 +60,21 @@ public class TaskService {
         task.setPriority(dto.getPriority());
         task.setTaskDate(dto.getTaskDate());
         task.setStatus(dto.getStatus());
+        task.setEvaluation(dto.getEvaluation());
+
+        if (dto.getSubtasks() != null && !dto.getSubtasks().isEmpty()) {
+            for (SubtaskDTO subDto : dto.getSubtasks()) {
+                Subtask subtask = new Subtask();
+                subtask.setTitle(subDto.getTitle());
+                subtask.setDescription(subDto.getDescription());
+                subtask.setStatus(subDto.getStatus() != null ? subDto.getStatus() : TaskStatus.PENDING);
+                subtask.setEvaluation(subDto.getEvaluation());
+                subtask.setTask(task);
+                task.getSubtasks().add(subtask);
+            }
+        }
+
+        enforceCompletionRules(task);
 
         Task savedTask = taskRepository.save(task);
 
@@ -80,10 +98,40 @@ public class TaskService {
         if (dto.getPriority() != null) task.setPriority(dto.getPriority());
         if (dto.getTaskDate() != null) task.setTaskDate(dto.getTaskDate());
         if (dto.getStatus() != null) task.setStatus(dto.getStatus());
+        if (dto.getEvaluation() != null) task.setEvaluation(dto.getEvaluation());
+
         if (dto.getUserId() != null) {
             User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
             task.setUser(user);
         }
+
+        if (dto.getSubtasks() != null) {
+            task.getSubtasks().removeIf(existingSub ->
+                    dto.getSubtasks().stream().noneMatch(s -> s.getId() != null && s.getId().equals(existingSub.getId()))
+            );
+
+            for (SubtaskDTO subDto : dto.getSubtasks()) {
+                if (subDto.getId() != null) {
+                    Subtask existing = task.getSubtasks().stream().filter(s -> s.getId().equals(subDto.getId())).findFirst().orElse(null);
+                    if (existing != null) {
+                        existing.setTitle(subDto.getTitle());
+                        existing.setDescription(subDto.getDescription());
+                        existing.setStatus(subDto.getStatus());
+                        existing.setEvaluation(subDto.getEvaluation());
+                    }
+                } else {
+                    Subtask newSub = new Subtask();
+                    newSub.setTitle(subDto.getTitle());
+                    newSub.setDescription(subDto.getDescription());
+                    newSub.setStatus(subDto.getStatus() != null ? subDto.getStatus() : TaskStatus.PENDING);
+                    newSub.setEvaluation(subDto.getEvaluation());
+                    newSub.setTask(task);
+                    task.getSubtasks().add(newSub);
+                }
+            }
+        }
+
+        enforceCompletionRules(task);
 
         Task updatedTask = taskRepository.save(task);
 
@@ -112,6 +160,19 @@ public class TaskService {
         taskRepository.delete(task);
     }
 
+    private void enforceCompletionRules(Task task) {
+        if (task.getSubtasks() != null && !task.getSubtasks().isEmpty()) {
+            boolean allCompleted = task.getSubtasks().stream()
+                    .allMatch(s -> s.getStatus() == TaskStatus.COMPLETED);
+
+            if (allCompleted) {
+                task.setStatus(TaskStatus.COMPLETED);
+            } else if (task.getStatus() == TaskStatus.COMPLETED) {
+                task.setStatus(TaskStatus.IN_PROGRESS);
+            }
+        }
+    }
+
     public TaskResponseDTO mapToDTO(Task task) {
         TaskResponseDTO dto = new TaskResponseDTO();
         dto.setId(task.getId());
@@ -120,6 +181,7 @@ public class TaskService {
         dto.setPriority(task.getPriority());
         dto.setTitle(task.getTitle());
         dto.setTaskDate(task.getTaskDate());
+        dto.setEvaluation(task.getEvaluation());
 
         if (task.getUser() != null) {
             dto.setUserId(task.getUser().getId());
@@ -129,6 +191,20 @@ public class TaskService {
         List<Note> notes = noteRepository.findNoteByTaskId(task.getId());
         if (!notes.isEmpty()) {
             dto.setNoteDescription(notes.get(0).getDescription());
+        }
+
+        if (task.getSubtasks() != null && !task.getSubtasks().isEmpty()) {
+            List<SubtaskDTO> subtaskDTOs = new ArrayList<>();
+            for (Subtask subtask : task.getSubtasks()) {
+                SubtaskDTO subDto = new SubtaskDTO();
+                subDto.setId(subtask.getId());
+                subDto.setTitle(subtask.getTitle());
+                subDto.setDescription(subtask.getDescription());
+                subDto.setStatus(subtask.getStatus());
+                subDto.setEvaluation(subtask.getEvaluation());
+                subtaskDTOs.add(subDto);
+            }
+            dto.setSubtasks(subtaskDTOs);
         }
 
         return dto;

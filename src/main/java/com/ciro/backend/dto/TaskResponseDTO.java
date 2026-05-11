@@ -3,6 +3,7 @@ package com.ciro.backend.dto;
 import com.ciro.backend.enums.TaskPriority;
 import com.ciro.backend.enums.TaskStatus;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class TaskResponseDTO {
     private Long id;
@@ -14,76 +15,29 @@ public class TaskResponseDTO {
     private TaskStatus status;
     private TaskPriority priority;
     private String noteDescription;
+    private String evaluation;
+    private List<SubtaskDTO> subtasks;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public String getUserFullName() {
-        return userFullName;
-    }
-
-    public void setUserFullName(String userFullName) {
-        this.userFullName = userFullName;
-    }
-
-    public LocalDateTime getTaskDate() {
-        return taskDate;
-    }
-
-    public void setTaskDate(LocalDateTime taskDate) {
-        this.taskDate = taskDate;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public TaskStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TaskStatus status) {
-        this.status = status;
-    }
-
-    public TaskPriority getPriority() {
-        return priority;
-    }
-
-    public void setPriority(TaskPriority priority) {
-        this.priority = priority;
-    }
-
-    public String getNoteDescription() {
-        return noteDescription;
-    }
-
-    public void setNoteDescription(String noteDescription) {
-        this.noteDescription = noteDescription;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+    public String getUserFullName() { return userFullName; }
+    public void setUserFullName(String userFullName) { this.userFullName = userFullName; }
+    public LocalDateTime getTaskDate() { return taskDate; }
+    public void setTaskDate(LocalDateTime taskDate) { this.taskDate = taskDate; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public TaskStatus getStatus() { return status; }
+    public void setStatus(TaskStatus status) { this.status = status; }
+    public TaskPriority getPriority() { return priority; }
+    public void setPriority(TaskPriority priority) { this.priority = priority; }
+    public String getNoteDescription() { return noteDescription; }
+    public void setNoteDescription(String noteDescription) { this.noteDescription = noteDescription; }
+    public String getEvaluation() { return evaluation; }
+    public void setEvaluation(String evaluation) { this.evaluation = evaluation; }
+    public List<SubtaskDTO> getSubtasks() { return subtasks; }
+    public void setSubtasks(List<SubtaskDTO> subtasks) { this.subtasks = subtasks; }
 }

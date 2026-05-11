@@ -4,6 +4,7 @@ import com.ciro.backend.enums.TaskStatus;
 import com.ciro.backend.enums.TaskPriority;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -29,66 +30,41 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private TaskPriority priority;
 
+    private String evaluation;
+
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Note> notes;
+    private List<Note> notes = new ArrayList<>();
 
-    public List<Note> getNotes() {
-        return notes;
-    }
+    // NUEVO CAMPO: Subtareas
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Subtask> subtasks = new ArrayList<>();
 
-    public void setNotes(List<Note> notes) {
-        this.notes = notes;
-    }
+    public Long getId() { return id; }
 
-    public Long getId() {
-        return id;
-    }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
-    public User getUser() {
-        return user;
-    }
+    public LocalDateTime getTaskDate() { return taskDate; }
+    public void setTaskDate(LocalDateTime taskDate) { this.taskDate = taskDate; }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public LocalDateTime getTaskDate() {
-        return taskDate;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setTaskDate(LocalDateTime taskDate) {
-        this.taskDate = taskDate;
-    }
+    public TaskStatus getStatus() { return status; }
+    public void setStatus(TaskStatus status) { this.status = status; }
 
-    public String getTitle() {
-        return title;
-    }
+    public TaskPriority getPriority() { return priority; }
+    public void setPriority(TaskPriority priority) { this.priority = priority; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public String getEvaluation() { return evaluation; }
+    public void setEvaluation(String evaluation) { this.evaluation = evaluation; }
 
-    public String getDescription() {
-        return description;
-    }
+    public List<Note> getNotes() { return notes; }
+    public void setNotes(List<Note> notes) { this.notes = notes; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public TaskStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TaskStatus status) {
-        this.status = status;
-    }
-
-    public TaskPriority getPriority() {
-        return priority;
-    }
-
-    public void setPriority(TaskPriority priority) {
-        this.priority = priority;
-    }
+    public List<Subtask> getSubtasks() { return subtasks; }
+    public void setSubtasks(List<Subtask> subtasks) { this.subtasks = subtasks; }
 }

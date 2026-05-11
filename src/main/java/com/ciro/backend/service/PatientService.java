@@ -86,7 +86,7 @@ public class PatientService {
         } else {
             TaskCreateDTO automaticTaskDTO = new TaskCreateDTO();
             automaticTaskDTO.setUserId(creator.getId());
-            automaticTaskDTO.setDescription("DNI: " + savedPatient.getDni());
+            automaticTaskDTO.setDescription("Paciente con DNI: " + savedPatient.getDni() + ", nombre: "+ savedPatient.getFullName());
             automaticTaskDTO.setStatus(TaskStatus.PENDING);
             automaticTaskDTO.setPriority(TaskPriority.LOW);
             automaticTaskDTO.setTitle("Buscar información de cómo nos conocieron");
