@@ -9,13 +9,13 @@ import java.math.BigDecimal;
 
 public class PendingSalaryItemDTO {
     private Long id;
-    private String employeeFullName;
+    private String fullName;
     private BigDecimal amount;
     private CurrencyType currencyType;
 
-    public PendingSalaryItemDTO(Long id, String employeeFullName, BigDecimal amount, CurrencyType currencyType) {
+    public PendingSalaryItemDTO(Long id, String fullName, BigDecimal amount, CurrencyType currencyType) {
         this.id = id;
-        this.employeeFullName = employeeFullName;
+        this.fullName = fullName;
         this.amount = amount;
         this.currencyType = currencyType;
     }
@@ -31,12 +31,12 @@ public class PendingSalaryItemDTO {
         this.id = id;
     }
 
-    public String getEmployeeFullName() {
-        return employeeFullName;
+    public String getFullName() {
+        return fullName;
     }
 
-    public void setEmployeeFullName(String employeeFullName) {
-        this.employeeFullName = employeeFullName;
+    public void setFullName(String employeeFullName) {
+        this.fullName = employeeFullName;
     }
 
     public BigDecimal getAmount() {
