@@ -75,17 +75,15 @@ public class ShiftService {
         lpSacoTurno.setLabel(sacoTurnoLabel);
         labelPatientService.assignLabelToPatient(lpSacoTurno);
 
-        patient.setAppointmentStatus(com.ciro.backend.enums.AppointmentStatus.SACO_TURNO);
-        patientRepository.save(patient);
-
         User doctor = userRepository.findById(dto.getDoctorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor no existe"));
 
         Shift newShift = new Shift();
-        newShift.setPatient(patient);
+        newShift.setPatient(savedPatient);
         newShift.setDoctor(doctor);
         newShift.setStatus(dto.getStatus());
         newShift.setShiftDate(dto.getShiftDate());
+        newShift.setEndDate(dto.getEndDate());
 
         Shift savedShift = shiftRepository.save(newShift);
 
@@ -106,6 +104,7 @@ public class ShiftService {
                 .orElseThrow(() -> new ResourceNotFoundException("Turno no encontrado con id: " + id));
 
         if (dto.getShiftDate() != null) shift.setShiftDate(dto.getShiftDate());
+        if (dto.getEndDate() != null) shift.setEndDate(dto.getEndDate());
         if (dto.getStatus() != null) shift.setStatus(dto.getStatus());
 
         if (dto.getPatientDni() != null) {
@@ -151,6 +150,7 @@ public class ShiftService {
         ShiftResponseDTO dto = new ShiftResponseDTO();
         dto.setId(shift.getId());
         dto.setShiftDate(shift.getShiftDate());
+        dto.setEndDate(shift.getEndDate());
         dto.setStatus(shift.getStatus());
 
         if (shift.getPatient() != null) {

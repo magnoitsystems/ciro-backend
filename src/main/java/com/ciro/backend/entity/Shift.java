@@ -24,53 +24,32 @@ public class Shift {
     @Column(name = "shift_date")
     private LocalDateTime shiftDate;
 
+    @Column(name = "end_date")
+    private LocalDateTime endDate;
+
     @Enumerated(EnumType.STRING)
     private ShiftStatus status;
 
     @OneToMany(mappedBy = "shift", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Note> notes;
 
-    public List<Note> getNotes() {
-        return notes;
-    }
+    public List<Note> getNotes() { return notes; }
+    public void setNotes(List<Note> notes) { this.notes = notes; }
 
-    public void setNotes(List<Note> notes) {
-        this.notes = notes;
-    }
+    public Long getId() { return id; }
 
-    public Long getId() {
-        return id;
-    }
+    public Patient getPatient() { return patient; }
+    public void setPatient(Patient patient) { this.patient = patient; }
 
-    public Patient getPatient() {
-        return patient;
-    }
+    public User getDoctor() { return doctor; }
+    public void setDoctor(User doctor) { this.doctor = doctor; }
 
-    public void setPatient(Patient patient) {
-        this.patient = patient;
-    }
+    public LocalDateTime getShiftDate() { return shiftDate; }
+    public void setShiftDate(LocalDateTime shiftDate) { this.shiftDate = shiftDate; }
 
-    public User getDoctor() {
-        return doctor;
-    }
+    public LocalDateTime getEndDate() { return endDate; }
+    public void setEndDate(LocalDateTime endDate) { this.endDate = endDate; }
 
-    public void setDoctor(User doctor) {
-        this.doctor = doctor;
-    }
-
-    public LocalDateTime getShiftDate() {
-        return shiftDate;
-    }
-
-    public void setShiftDate(LocalDateTime shiftDate) {
-        this.shiftDate = shiftDate;
-    }
-
-    public ShiftStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(ShiftStatus status) {
-        this.status = status;
-    }
+    public ShiftStatus getStatus() { return status; }
+    public void setStatus(ShiftStatus status) { this.status = status; }
 }
