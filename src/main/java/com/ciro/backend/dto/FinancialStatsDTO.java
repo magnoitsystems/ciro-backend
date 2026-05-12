@@ -4,62 +4,61 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public class FinancialStatsDTO {
-    private BigDecimal currentMonthIncomePesos;
-    private BigDecimal currentMonthIncomeDollars;
-    private BigDecimal currentMonthExpensesPesos;
-    private BigDecimal currentMonthExpensesDollars;
-
-    private BigDecimal previousMonthIncomePesos;
-    private BigDecimal previousMonthIncomeDollars;
-
+    private BigDecimal currentPeriodIncomePesos;
+    private BigDecimal currentPeriodIncomeDollars;
+    private BigDecimal currentPeriodExpensesPesos;
+    private BigDecimal currentPeriodExpensesDollars;
+    private BigDecimal netProfitPesos;
+    private BigDecimal netProfitDollars;
     private List<StatItemDTO> incomeBreakdown;
+    private List<StatItemDTO> expensesBreakdown;
 
-    public BigDecimal getCurrentMonthIncomePesos() {
-        return currentMonthIncomePesos;
+    public BigDecimal getCurrentPeriodIncomePesos() {
+        return currentPeriodIncomePesos;
     }
 
-    public void setCurrentMonthIncomePesos(BigDecimal currentMonthIncomePesos) {
-        this.currentMonthIncomePesos = currentMonthIncomePesos;
+    public void setCurrentPeriodIncomePesos(BigDecimal currentPeriodIncomePesos) {
+        this.currentPeriodIncomePesos = currentPeriodIncomePesos;
     }
 
-    public BigDecimal getCurrentMonthIncomeDollars() {
-        return currentMonthIncomeDollars;
+    public BigDecimal getCurrentPeriodIncomeDollars() {
+        return currentPeriodIncomeDollars;
     }
 
-    public void setCurrentMonthIncomeDollars(BigDecimal currentMonthIncomeDollars) {
-        this.currentMonthIncomeDollars = currentMonthIncomeDollars;
+    public void setCurrentPeriodIncomeDollars(BigDecimal currentPeriodIncomeDollars) {
+        this.currentPeriodIncomeDollars = currentPeriodIncomeDollars;
     }
 
-    public BigDecimal getCurrentMonthExpensesPesos() {
-        return currentMonthExpensesPesos;
+    public BigDecimal getCurrentPeriodExpensesPesos() {
+        return currentPeriodExpensesPesos;
     }
 
-    public void setCurrentMonthExpensesPesos(BigDecimal currentMonthExpensesPesos) {
-        this.currentMonthExpensesPesos = currentMonthExpensesPesos;
+    public void setCurrentPeriodExpensesPesos(BigDecimal currentPeriodExpensesPesos) {
+        this.currentPeriodExpensesPesos = currentPeriodExpensesPesos;
     }
 
-    public BigDecimal getCurrentMonthExpensesDollars() {
-        return currentMonthExpensesDollars;
+    public BigDecimal getCurrentPeriodExpensesDollars() {
+        return currentPeriodExpensesDollars;
     }
 
-    public void setCurrentMonthExpensesDollars(BigDecimal currentMonthExpensesDollars) {
-        this.currentMonthExpensesDollars = currentMonthExpensesDollars;
+    public void setCurrentPeriodExpensesDollars(BigDecimal currentPeriodExpensesDollars) {
+        this.currentPeriodExpensesDollars = currentPeriodExpensesDollars;
     }
 
-    public BigDecimal getPreviousMonthIncomePesos() {
-        return previousMonthIncomePesos;
+    public BigDecimal getNetProfitPesos() {
+        return netProfitPesos;
     }
 
-    public void setPreviousMonthIncomePesos(BigDecimal previousMonthIncomePesos) {
-        this.previousMonthIncomePesos = previousMonthIncomePesos;
+    public void setNetProfitPesos(BigDecimal netProfitPesos) {
+        this.netProfitPesos = netProfitPesos;
     }
 
-    public BigDecimal getPreviousMonthIncomeDollars() {
-        return previousMonthIncomeDollars;
+    public BigDecimal getNetProfitDollars() {
+        return netProfitDollars;
     }
 
-    public void setPreviousMonthIncomeDollars(BigDecimal previousMonthIncomeDollars) {
-        this.previousMonthIncomeDollars = previousMonthIncomeDollars;
+    public void setNetProfitDollars(BigDecimal netProfitDollars) {
+        this.netProfitDollars = netProfitDollars;
     }
 
     public List<StatItemDTO> getIncomeBreakdown() {
@@ -68,5 +67,13 @@ public class FinancialStatsDTO {
 
     public void setIncomeBreakdown(List<StatItemDTO> incomeBreakdown) {
         this.incomeBreakdown = incomeBreakdown;
+    }
+
+    public List<StatItemDTO> getExpensesBreakdown() {
+        return expensesBreakdown;
+    }
+
+    public void setExpensesBreakdown(List<StatItemDTO> expensesBreakdown) {
+        this.expensesBreakdown = expensesBreakdown;
     }
 }

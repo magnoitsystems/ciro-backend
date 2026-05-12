@@ -1,8 +1,12 @@
 package com.ciro.backend.service;
 
 import com.ciro.backend.dto.*;
+import com.ciro.backend.entity.CashMovement;
+import com.ciro.backend.entity.Patient;
+import com.ciro.backend.enums.CashMovementType;
 import com.ciro.backend.enums.CurrencyType;
 import com.ciro.backend.repository.BillRepository;
+import com.ciro.backend.repository.CashMovementRepository;
 import com.ciro.backend.repository.PatientRepository;
 import com.ciro.backend.repository.ReceiptRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +15,12 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.YearMonth;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class StatisticsService {
@@ -22,64 +29,93 @@ public class StatisticsService {
     @Autowired private BillRepository billRepository;
     @Autowired private PatientRepository patientRepository;
     @Autowired private PatientService patientService;
+    @Autowired private CashMovementRepository cashMovementRepository;
 
-    public StatisticsResponseDTO getDashboardStatistics() {
+    public StatisticsResponseDTO getDashboardStatistics(LocalDate startDate, LocalDate endDate) {
+        if (startDate == null || endDate == null) {
+            LocalDate today = LocalDate.now();
+            startDate = today.withDayOfMonth(1);
+            endDate = today.withDayOfMonth(today.lengthOfMonth());
+        }
+
         StatisticsResponseDTO response = new StatisticsResponseDTO();
-
-        YearMonth currentMonth = YearMonth.now();
-        LocalDate startCurrent = currentMonth.atDay(1);
-        LocalDate endCurrent = currentMonth.atEndOfMonth();
-
-        YearMonth prevMonth = currentMonth.minusMonths(1);
-        LocalDate startPrev = prevMonth.atDay(1);
-        LocalDate endPrev = prevMonth.atEndOfMonth();
-
-        response.setFinancial(buildFinancialStats(startCurrent, endCurrent, startPrev, endPrev));
-
-        response.setPatients(buildPatientStats());
-
+        response.setFinancial(buildFinancialStats(startDate, endDate));
+        response.setPatients(buildPatientStats(startDate, endDate));
         response.setImplantsThisMonth(0L);
 
         return response;
     }
 
-    private FinancialStatsDTO buildFinancialStats(LocalDate startCurr, LocalDate endCurr, LocalDate startPrev, LocalDate endPrev) {
+    private FinancialStatsDTO buildFinancialStats(LocalDate startDate, LocalDate endDate) {
         FinancialStatsDTO finStats = new FinancialStatsDTO();
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
 
-        finStats.setCurrentMonthIncomePesos(getSafeDecimal(receiptRepository.sumIncomeByCurrencyAndDate(CurrencyType.PESOS, startCurr, endCurr)));
-        finStats.setCurrentMonthIncomeDollars(getSafeDecimal(receiptRepository.sumIncomeByCurrencyAndDate(CurrencyType.DOLARES, startCurr, endCurr)));
-        finStats.setCurrentMonthExpensesPesos(getSafeDecimal(billRepository.sumExpensesByCurrencyAndDate(CurrencyType.PESOS, startCurr, endCurr)));
-        finStats.setCurrentMonthExpensesDollars(getSafeDecimal(billRepository.sumExpensesByCurrencyAndDate(CurrencyType.DOLARES, startCurr, endCurr)));
+        List<CashMovement> movements = cashMovementRepository.findByFilters(null, startDateTime, endDateTime);
 
-        finStats.setPreviousMonthIncomePesos(getSafeDecimal(receiptRepository.sumIncomeByCurrencyAndDate(CurrencyType.PESOS, startPrev, endPrev)));
-        finStats.setPreviousMonthIncomeDollars(getSafeDecimal(receiptRepository.sumIncomeByCurrencyAndDate(CurrencyType.DOLARES, startPrev, endPrev)));
+        BigDecimal incPesos = BigDecimal.ZERO, incDolares = BigDecimal.ZERO;
+        BigDecimal expPesos = BigDecimal.ZERO, expDolares = BigDecimal.ZERO;
 
-        List<Object[]> breakdownData = receiptRepository.sumIncomeByCurrencyAndPaymentMethod(startCurr, endCurr);
-        List<StatItemDTO> breakdownList = new ArrayList<>();
-
-
-        for (Object[] row : breakdownData) {
-            String currency = row[0].toString();
-            String method = row[1].toString();
-            BigDecimal amount = (BigDecimal) row[2];
-
-            BigDecimal totalForCurrency = currency.equals("PESOS") ? finStats.getCurrentMonthIncomePesos() : finStats.getCurrentMonthIncomeDollars();
-            double percentage = 0.0;
-            if (totalForCurrency.compareTo(BigDecimal.ZERO) > 0) {
-                percentage = amount.divide(totalForCurrency, 4, RoundingMode.HALF_UP).doubleValue() * 100;
+        for (CashMovement m : movements) {
+            if (m.getType() == CashMovementType.INGRESO) {
+                if (m.getCurrencyType() == CurrencyType.PESOS) incPesos = incPesos.add(m.getAmount());
+                else incDolares = incDolares.add(m.getAmount());
+            } else {
+                if (m.getCurrencyType() == CurrencyType.PESOS) expPesos = expPesos.add(m.getAmount());
+                else expDolares = expDolares.add(m.getAmount());
             }
-
-            breakdownList.add(new StatItemDTO(currency + " - " + method, amount, Math.round(percentage * 10.0) / 10.0));
         }
-        finStats.setIncomeBreakdown(breakdownList);
+
+        finStats.setCurrentPeriodIncomePesos(incPesos);
+        finStats.setCurrentPeriodIncomeDollars(incDolares);
+        finStats.setCurrentPeriodExpensesPesos(expPesos);
+        finStats.setCurrentPeriodExpensesDollars(expDolares);
+
+        finStats.setNetProfitPesos(incPesos.subtract(expPesos));
+        finStats.setNetProfitDollars(incDolares.subtract(expDolares));
+
+        finStats.setIncomeBreakdown(buildMovementBreakdown(movements, CashMovementType.INGRESO));
+        finStats.setExpensesBreakdown(buildMovementBreakdown(movements, CashMovementType.EGRESO));
 
         return finStats;
     }
 
-    private PatientStatsDTO buildPatientStats() {
+    private List<StatItemDTO> buildMovementBreakdown(List<CashMovement> movements, CashMovementType type) {
+        List<CashMovement> filtered = movements.stream().filter(m -> m.getType() == type).toList();
+
+        Map<String, List<CashMovement>> grouped = filtered.stream()
+                .collect(Collectors.groupingBy(m -> m.getCurrencyType().name() + " - " + m.getPaymentMethod().name()));
+
+        List<StatItemDTO> list = new ArrayList<>();
+
+        BigDecimal totalPesos = filtered.stream().filter(m -> m.getCurrencyType() == CurrencyType.PESOS).map(CashMovement::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalDolares = filtered.stream().filter(m -> m.getCurrencyType() == CurrencyType.DOLARES).map(CashMovement::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        for (Map.Entry<String, List<CashMovement>> entry : grouped.entrySet()) {
+            String label = entry.getKey();
+            List<CashMovement> movs = entry.getValue();
+
+            BigDecimal amount = movs.stream().map(CashMovement::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+            List<Long> ids = movs.stream().map(CashMovement::getId).toList();
+
+            BigDecimal totalRef = label.startsWith("PESOS") ? totalPesos : totalDolares;
+            double percentage = 0.0;
+            if (totalRef.compareTo(BigDecimal.ZERO) > 0) {
+                percentage = amount.divide(totalRef, 4, RoundingMode.HALF_UP).doubleValue() * 100;
+            }
+
+            list.add(new StatItemDTO(label, amount, Math.round(percentage * 10.0) / 10.0, ids));
+        }
+        return list;
+    }
+
+    private PatientStatsDTO buildPatientStats(LocalDate startDate, LocalDate endDate) {
         PatientStatsDTO patStats = new PatientStatsDTO();
 
-        long totalPatients = patientRepository.count();
+        List<Patient> allPatients = patientRepository.findAll();
+
+        long totalPatients = allPatients.size();
+
         long totalDebtors = patientService.getDebtorPatients().size();
         long totalNonDebtors = totalPatients - totalDebtors;
 
@@ -87,32 +123,26 @@ public class StatisticsService {
         patStats.setTotalDebtors(totalDebtors);
         patStats.setTotalNonDebtors(totalNonDebtors);
 
-        List<Object[]> originData = patientRepository.countPatientsByOrigin();
-        patStats.setPatientsByOrigin(mapToStatItems(originData, totalPatients));
-
-        List<Object[]> cityData = patientRepository.countPatientsByCity();
-        patStats.setPatientsByCity(mapToStatItems(cityData, totalPatients));
+        patStats.setPatientsByOrigin(groupPatientsBy(allPatients, p -> p.getFrom() != null ? p.getFrom().name() : "Otro"));
+        patStats.setPatientsByCity(groupPatientsBy(allPatients, p -> p.getCity() != null && !p.getCity().isEmpty() ? p.getCity() : "Otra"));
+        patStats.setPatientsByReason(groupPatientsBy(allPatients, p -> p.getReasonForConsultation() != null ? p.getReasonForConsultation().name() : "No especificado"));
+        patStats.setPatientsByAppointmentStatus(groupPatientsBy(allPatients, p -> p.getAppointmentStatus() != null ? p.getAppointmentStatus().name() : "No especificado"));
 
         return patStats;
     }
 
-    private List<StatItemDTO> mapToStatItems(List<Object[]> data, long totalEntities) {
+    private List<StatItemDTO> groupPatientsBy(List<Patient> patients, java.util.function.Function<Patient, String> classifier) {
+        Map<String, List<Patient>> grouped = patients.stream().collect(Collectors.groupingBy(classifier));
         List<StatItemDTO> list = new ArrayList<>();
-        if (totalEntities == 0) return list;
+        long total = patients.size();
 
-        for (Object[] row : data) {
-            String label = row[0] != null ? row[0].toString() : "Otro";
-            Long count = ((Number) row[1]).longValue();
-            double percentage = ((double) count / totalEntities) * 100;
+        for (Map.Entry<String, List<Patient>> entry : grouped.entrySet()) {
+            long count = entry.getValue().size();
+            List<Long> ids = entry.getValue().stream().map(Patient::getId).toList();
+            double percentage = total > 0 ? ((double) count / total) * 100 : 0;
 
-            percentage = Math.round(percentage * 10.0) / 10.0;
-
-            list.add(new StatItemDTO(label, count, percentage));
+            list.add(new StatItemDTO(entry.getKey(), count, Math.round(percentage * 10.0) / 10.0, ids));
         }
         return list;
-    }
-
-    private BigDecimal getSafeDecimal(BigDecimal value) {
-        return value != null ? value : BigDecimal.ZERO;
     }
 }
