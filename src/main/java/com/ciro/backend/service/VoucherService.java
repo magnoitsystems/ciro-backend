@@ -61,11 +61,15 @@ public class VoucherService {
             detail.setDetail(detailDto.getDetail());
             detail.setUnitPrice(detailDto.getUnitPrice());
             detail.setAmount(detailDto.getAmount());
+            detail.setDueDate(detailDto.getDueDate());
             voucherDetailRepository.save(detail);
 
             BigDecimal subtotal = detailDto.getUnitPrice().multiply(BigDecimal.valueOf(detailDto.getAmount()));
             totalAmount = totalAmount.add(subtotal);
         }
+
+        savedVoucher.setTotal_amount(totalAmount);
+        voucherRepository.save(savedVoucher);
 
         if (totalAmount.compareTo(BigDecimal.ZERO) > 0) {
             CurrentAccount accountEntry = new CurrentAccount();
@@ -104,6 +108,57 @@ public class VoucherService {
         return new VoucherResponseDTO(savedVoucher.getId(), savedVoucher.getVoucherDate(), totalAmount, savedVoucher.getCurrencyType());
     }
 
+    @Transactional
+    public VoucherResponseDTO updateVoucher(Long id, VoucherCreateDTO dto) {
+        Voucher voucher = voucherRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el comprobante con ID: " + id));
+
+        voucher.setVoucherDate(dto.getVoucherDate() != null ? dto.getVoucherDate() : voucher.getVoucherDate());
+        voucher.setObservations(dto.getObservations());
+        voucher.setCurrencyType(dto.getCurrencyType());
+
+        if (dto.getUserId() != null) {
+            User professional = userRepository.findById(dto.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Profesional no encontrado"));
+            voucher.setUser(professional);
+        }
+
+        List<VoucherDetail> existingDetails = voucherDetailRepository.findByVoucherId(voucher.getId());
+        for (VoucherDetail existingDetail : existingDetails) {
+            boolean keep = dto.getDetails().stream()
+                    .anyMatch(d -> d.getId() != null && d.getId().equals(existingDetail.getId()));
+            if (!keep) {
+                voucherDetailRepository.delete(existingDetail);
+            }
+        }
+
+        BigDecimal newTotalAmount = BigDecimal.ZERO;
+
+        for (VoucherDetailDTO detailDto : dto.getDetails()) {
+            VoucherDetail detail;
+            if (detailDto.getId() != null) {
+                detail = voucherDetailRepository.findById(detailDto.getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Detalle no encontrado"));
+            } else {
+                detail = new VoucherDetail();
+                detail.setVoucher(voucher);
+            }
+            detail.setDetail(detailDto.getDetail());
+            detail.setUnitPrice(detailDto.getUnitPrice());
+            detail.setAmount(detailDto.getAmount());
+            detail.setDueDate(detailDto.getDueDate());
+            voucherDetailRepository.save(detail);
+
+            BigDecimal subtotal = detailDto.getUnitPrice().multiply(BigDecimal.valueOf(detailDto.getAmount()));
+            newTotalAmount = newTotalAmount.add(subtotal);
+        }
+
+        voucher.setTotal_amount(newTotalAmount);
+        Voucher updatedVoucher = voucherRepository.save(voucher);
+
+        return new VoucherResponseDTO(updatedVoucher.getId(), updatedVoucher.getVoucherDate(), newTotalAmount, updatedVoucher.getCurrencyType());
+    }
+
     public VoucherDTO getVoucherById(Long id) {
         Voucher voucher = voucherRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró el comprobante con ID: " + id));
@@ -129,9 +184,11 @@ public class VoucherService {
 
         for (VoucherDetail detail : details) {
             VoucherDetailDTO detailDTO = new VoucherDetailDTO();
+            detailDTO.setId(detail.getId());
             detailDTO.setDetail(detail.getDetail());
             detailDTO.setUnitPrice(detail.getUnitPrice());
             detailDTO.setAmount(detail.getAmount());
+            detailDTO.setDueDate(detail.getDueDate());
             detailDTOs.add(detailDTO);
 
             BigDecimal subtotal = detail.getUnitPrice().multiply(BigDecimal.valueOf(detail.getAmount()));

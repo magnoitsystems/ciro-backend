@@ -3,7 +3,6 @@ package com.ciro.backend.entity;
 import com.ciro.backend.enums.CurrencyType;
 import com.ciro.backend.enums.PaymentMethod;
 import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDate;
 import java.math.BigDecimal;
 
@@ -31,7 +30,6 @@ public class Receipt {
     @Column(name = "currency_type")
     private CurrencyType currencyType;
 
-    // Cambiamos el id_user viejo por el id_doctor
     @ManyToOne
     @JoinColumn(name = "id_doctor")
     private User doctor;
@@ -46,79 +44,36 @@ public class Receipt {
     @Column(name = "payment_method")
     private PaymentMethod paymentMethod;
 
-    public PaymentMethod getPaymentMethod() {
-        return paymentMethod;
-    }
+    @ManyToOne
+    @JoinColumn(name = "id_voucher")
+    private Voucher voucher;
 
-    public void setPaymentMethod(PaymentMethod paymentMethod) {
-        this.paymentMethod = paymentMethod;
-    }
+    @ManyToOne
+    @JoinColumn(name = "id_voucher_detail")
+    private VoucherDetail voucherDetail;
 
-    public Long getId() {
-        return id;
-    }
-
-    public LocalDate getReceiptDate() {
-        return receiptDate;
-    }
-
-    public void setReceiptDate(LocalDate receiptDate) {
-        this.receiptDate = receiptDate;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getObservations() {
-        return observations;
-    }
-
-    public void setObservations(String observations) {
-        this.observations = observations;
-    }
-
-    public Patient getPatient() {
-        return patient;
-    }
-
-    public void setPatient(Patient patient) {
-        this.patient = patient;
-    }
-
-    public CurrencyType getCurrencyType() {
-        return currencyType;
-    }
-
-    public void setCurrencyType(CurrencyType currencyType) {
-        this.currencyType = currencyType;
-    }
-
-    public User getDoctor() {
-        return doctor;
-    }
-
-    public void setDoctor(User doctor) {
-        this.doctor = doctor;
-    }
-
-    public BigDecimal getExchangeRate() {
-        return exchangeRate;
-    }
-
-    public void setExchangeRate(BigDecimal exchangeRate) {
-        this.exchangeRate = exchangeRate;
-    }
-
-    public BigDecimal getConvertedAmount() {
-        return convertedAmount;
-    }
-
-    public void setConvertedAmount(BigDecimal convertedAmount) {
-        this.convertedAmount = convertedAmount;
-    }
+    // Getters y Setters
+    public Long getId() { return id; }
+    public LocalDate getReceiptDate() { return receiptDate; }
+    public void setReceiptDate(LocalDate receiptDate) { this.receiptDate = receiptDate; }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
+    public String getObservations() { return observations; }
+    public void setObservations(String observations) { this.observations = observations; }
+    public Patient getPatient() { return patient; }
+    public void setPatient(Patient patient) { this.patient = patient; }
+    public CurrencyType getCurrencyType() { return currencyType; }
+    public void setCurrencyType(CurrencyType currencyType) { this.currencyType = currencyType; }
+    public User getDoctor() { return doctor; }
+    public void setDoctor(User doctor) { this.doctor = doctor; }
+    public BigDecimal getExchangeRate() { return exchangeRate; }
+    public void setExchangeRate(BigDecimal exchangeRate) { this.exchangeRate = exchangeRate; }
+    public BigDecimal getConvertedAmount() { return convertedAmount; }
+    public void setConvertedAmount(BigDecimal convertedAmount) { this.convertedAmount = convertedAmount; }
+    public PaymentMethod getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(PaymentMethod paymentMethod) { this.paymentMethod = paymentMethod; }
+    public Voucher getVoucher() { return voucher; }
+    public void setVoucher(Voucher voucher) { this.voucher = voucher; }
+    public VoucherDetail getVoucherDetail() { return voucherDetail; }
+    public void setVoucherDetail(VoucherDetail voucherDetail) { this.voucherDetail = voucherDetail; }
 }

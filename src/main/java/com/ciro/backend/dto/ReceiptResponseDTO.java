@@ -19,6 +19,9 @@ public class ReceiptResponseDTO {
     private String doctorFullName;
     private PaymentMethod paymentMethod;
     private String observations;
+    private Long voucherId;
+    private Long voucherDetailId;
+
 
     public ReceiptResponseDTO(Long id,
                               LocalDate receiptDate,
@@ -30,7 +33,9 @@ public class ReceiptResponseDTO {
                               String patientDni,
                               String doctorFullName,
                               PaymentMethod paymentMethod,
-                              String observations) {
+                              String observations,
+                              Long voucherId,
+                              Long voucherDetailId) {
         this.id = id;
         this.receiptDate = receiptDate;
         this.amount = amount;
@@ -42,6 +47,8 @@ public class ReceiptResponseDTO {
         this.doctorFullName = doctorFullName;
         this.paymentMethod = paymentMethod;
         this.observations = observations;
+        this.voucherId = voucherId;
+        this.voucherDetailId = voucherDetailId;
     }
 
     public Long getId() { return id; }
@@ -55,5 +62,6 @@ public class ReceiptResponseDTO {
     public String getDoctorFullName() { return doctorFullName; }
     public PaymentMethod getPaymentMethod() { return paymentMethod; }
     public String getObservations() { return observations; }
-
+    public Long getVoucherId() { return voucherId; }
+    public Long getVoucherDetailId() { return voucherDetailId; }
 }

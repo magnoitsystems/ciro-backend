@@ -17,7 +17,13 @@ public class ReceiptCreateDTO {
     private BigDecimal exchangeRate;
     private PaymentMethod paymentMethod;
     private boolean payDollarDebtWithPesos;
+    private Long voucherId;
+    private Long voucherDetailId;
 
+    public Long getVoucherId() { return voucherId; }
+    public void setVoucherId(Long voucherId) { this.voucherId = voucherId; }
+    public Long getVoucherDetailId() { return voucherDetailId; }
+    public void setVoucherDetailId(Long voucherDetailId) { this.voucherDetailId = voucherDetailId; }
     public boolean isPayDollarDebtWithPesos() { return payDollarDebtWithPesos; }
     public void setPayDollarDebtWithPesos(boolean payDollarDebtWithPesos) { this.payDollarDebtWithPesos = payDollarDebtWithPesos; }
     public PaymentMethod getPaymentMethod() { return paymentMethod; }

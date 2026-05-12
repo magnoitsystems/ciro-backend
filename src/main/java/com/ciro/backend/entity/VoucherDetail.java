@@ -1,9 +1,8 @@
 package com.ciro.backend.entity;
 
-import com.ciro.backend.enums.CurrencyType;
 import jakarta.persistence.*;
-import lombok.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "voucher_details")
@@ -21,44 +20,22 @@ public class VoucherDetail {
     @Column
     private int amount;
 
+    @Column(name = "due_date")
+    private LocalDate dueDate;
+
     @ManyToOne
     @JoinColumn(name = "id_voucher")
     private Voucher voucher;
 
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getDetail() {
-        return detail;
-    }
-
-    public void setDetail(String detail) {
-        this.detail = detail;
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
-
-    public void setUnitPrice(BigDecimal unitPrice) {
-        this.unitPrice = unitPrice;
-    }
-
-    public int getAmount() {
-        return amount;
-    }
-
-    public void setAmount(int amount) {
-        this.amount = amount;
-    }
-
-    public Voucher getVoucher() {
-        return voucher;
-    }
-
-    public void setVoucher(Voucher voucher) {
-        this.voucher = voucher;
-    }
+    public Long getId() { return id; }
+    public String getDetail() { return detail; }
+    public void setDetail(String detail) { this.detail = detail; }
+    public BigDecimal getUnitPrice() { return unitPrice; }
+    public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
+    public int getAmount() { return amount; }
+    public void setAmount(int amount) { this.amount = amount; }
+    public LocalDate getDueDate() { return dueDate; }
+    public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
+    public Voucher getVoucher() { return voucher; }
+    public void setVoucher(Voucher voucher) { this.voucher = voucher; }
 }

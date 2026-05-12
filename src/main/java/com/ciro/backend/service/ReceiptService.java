@@ -2,7 +2,6 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.ReceiptCreateDTO;
 import com.ciro.backend.dto.ReceiptResponseDTO;
-import com.ciro.backend.dto.RevenueWidgetDTO;
 import com.ciro.backend.entity.*;
 import com.ciro.backend.enums.CashMovementType;
 import com.ciro.backend.enums.CurrencyType;
@@ -30,6 +29,8 @@ public class ReceiptService {
     @Autowired private UserRepository userRepository;
     @Autowired private CurrentAccountService currentAccountService;
     @Autowired private CashMovementService cashMovementService;
+    @Autowired private VoucherRepository voucherRepository;
+    @Autowired private VoucherDetailRepository voucherDetailRepository;
 
     @Transactional
     public ReceiptResponseDTO createReceipt(ReceiptCreateDTO dto) {
@@ -70,6 +71,18 @@ public class ReceiptService {
         receipt.setPatient(patient);
         receipt.setDoctor(doctor);
         receipt.setPaymentMethod(dto.getPaymentMethod());
+
+        if (dto.getVoucherId() != null) {
+            Voucher voucher = voucherRepository.findById(dto.getVoucherId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Comprobante no encontrado"));
+            receipt.setVoucher(voucher);
+        }
+
+        if (dto.getVoucherDetailId() != null) {
+            VoucherDetail voucherDetail = voucherDetailRepository.findById(dto.getVoucherDetailId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Detalle de comprobante no encontrado"));
+            receipt.setVoucherDetail(voucherDetail);
+        }
 
         Receipt savedReceipt = receiptRepository.save(receipt);
 
@@ -127,19 +140,40 @@ public class ReceiptService {
                 savedReceipt.getDoctor() != null ? savedReceipt.getDoctor().getId() : null
         );
 
-        return new ReceiptResponseDTO(
-                savedReceipt.getId(),
-                savedReceipt.getReceiptDate(),
-                savedReceipt.getAmount(),
-                savedReceipt.getCurrencyType(),
-                savedReceipt.getExchangeRate(),
-                savedReceipt.getConvertedAmount(),
-                savedReceipt.getPatient().getFullName(),
-                savedReceipt.getPatient().getDni(),
-                savedReceipt.getDoctor() != null ? savedReceipt.getDoctor().getName() + " " + savedReceipt.getDoctor().getLastname() : null,
-                savedReceipt.getPaymentMethod(),
-                savedReceipt.getObservations()
-        );
+        return mapToDTO(savedReceipt);
+    }
+
+    @Transactional
+    public ReceiptResponseDTO updateReceipt(Long id, ReceiptCreateDTO dto) {
+        Receipt receipt = receiptRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Recibo no encontrado"));
+
+        receipt.setAmount(dto.getAmount());
+        receipt.setObservations(dto.getObservations());
+        receipt.setReceiptDate(dto.getReceiptDate());
+        receipt.setPaymentMethod(dto.getPaymentMethod());
+        receipt.setCurrencyType(dto.getCurrencyType());
+        receipt.setExchangeRate(dto.getExchangeRate());
+
+        if (dto.getVoucherId() != null) {
+            Voucher voucher = voucherRepository.findById(dto.getVoucherId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Comprobante no encontrado"));
+            receipt.setVoucher(voucher);
+        } else {
+            receipt.setVoucher(null);
+        }
+
+        if (dto.getVoucherDetailId() != null) {
+            VoucherDetail voucherDetail = voucherDetailRepository.findById(dto.getVoucherDetailId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Detalle de comprobante no encontrado"));
+            receipt.setVoucherDetail(voucherDetail);
+        } else {
+            receipt.setVoucherDetail(null);
+        }
+
+        Receipt updatedReceipt = receiptRepository.save(receipt);
+
+        return mapToDTO(updatedReceipt);
     }
 
     public List<ReceiptResponseDTO> getReceiptsByPatient(Long patientId) {
@@ -151,19 +185,7 @@ public class ReceiptService {
         List<Receipt> receipts = receiptRepository.findByPatientIdOrderByReceiptDateDesc(patientId);
 
         return receipts.stream()
-                .map(r -> new ReceiptResponseDTO(
-                        r.getId(),
-                        r.getReceiptDate(),
-                        r.getAmount(),
-                        r.getCurrencyType(),
-                        r.getExchangeRate(),
-                        r.getConvertedAmount(),
-                        r.getPatient().getFullName(),
-                        r.getPatient().getDni(),
-                        r.getDoctor() != null ? r.getDoctor().getName() + " "+ r.getDoctor().getLastname() : null,
-                        r.getPaymentMethod(),
-                        r.getObservations()
-                ))
+                .map(this::mapToDTO)
                 .toList();
     }
 
@@ -172,18 +194,25 @@ public class ReceiptService {
         Receipt receipt = receiptRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recibo no encontrado"));
 
-        return new ReceiptResponseDTO(
-                receipt.getId(),
-                receipt.getReceiptDate(),
-                receipt.getAmount(),
-                receipt.getCurrencyType(),
-                receipt.getExchangeRate(),
-                receipt.getConvertedAmount(),
-                receipt.getPatient().getFullName(),
-                receipt.getPatient().getDni(),
-                receipt.getDoctor() != null ? receipt.getDoctor().getName() + receipt.getDoctor().getLastname() : null,
-                receipt.getPaymentMethod(),
-                receipt.getObservations()
+        return mapToDTO(receipt);
+    }
+
+    private ReceiptResponseDTO mapToDTO(Receipt r) {
+        ReceiptResponseDTO dto = new ReceiptResponseDTO(
+                r.getId(),
+                r.getReceiptDate(),
+                r.getAmount(),
+                r.getCurrencyType(),
+                r.getExchangeRate(),
+                r.getConvertedAmount(),
+                r.getPatient() != null ? r.getPatient().getFullName() : null,
+                r.getPatient() != null ? r.getPatient().getDni() : null,
+                r.getDoctor() != null ? r.getDoctor().getName() + " " + r.getDoctor().getLastname() : null,
+                r.getPaymentMethod(),
+                r.getObservations(),
+                r.getVoucher() != null ? r.getVoucher().getId() : null,
+                r.getVoucherDetail() != null ? r.getVoucherDetail().getId() : null
         );
+        return dto;
     }
 }
