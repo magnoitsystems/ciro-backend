@@ -172,6 +172,7 @@ public class ReceiptService {
         }
 
         Receipt updatedReceipt = receiptRepository.save(receipt);
+        currentAccountService.rebuildPatientBalances(updatedReceipt.getPatient().getId());
 
         return mapToDTO(updatedReceipt);
     }

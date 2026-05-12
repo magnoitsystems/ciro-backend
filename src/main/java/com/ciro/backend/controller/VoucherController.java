@@ -39,4 +39,12 @@ public class VoucherController {
         List<VoucherResponseDTO> vouchers = voucherService.getVouchersByPatientId(patientId);
         return ResponseEntity.ok(vouchers);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<VoucherResponseDTO> updateVoucher(
+            @PathVariable Long id,
+            @RequestBody VoucherCreateDTO dto) {
+        VoucherResponseDTO updatedVoucher = voucherService.updateVoucher(id, dto);
+        return ResponseEntity.ok(updatedVoucher);
+    }
 }

@@ -35,7 +35,7 @@ public class PatientService {
     @Autowired
     private TaskService taskService;
     @Autowired
-    private CurrentAccountRepository currentAccountRepository;
+    private CurrentAccountService currentAccountService;
 
     @Transactional
     public PatientResponseDTO createPatient(PatientCreateDTO dto) {
@@ -223,102 +223,58 @@ public class PatientService {
 
     public List<PatientDebtorDTO> getDebtorPatients() {
         Label deudorLabel = labelRepository.findByLabel("Deudor").orElse(null);
-
-        if (deudorLabel == null) {
-            return new ArrayList<>();
-        }
+        if (deudorLabel == null) return new ArrayList<>();
 
         List<LabelPatient> relations = labelPatientRepository.findLabelPatientByLabel(deudorLabel.getId());
-
         List<PatientDebtorDTO> debtors = new ArrayList<>();
 
         for (LabelPatient relation : relations) {
             Patient patient = relation.getPatient();
 
-            com.ciro.backend.entity.CurrentAccount lastRecord = currentAccountRepository
-                    .findTopByPatientIdOrderByIdDesc(patient.getId())
-                    .orElse(null);
+            PatientDebtInfo debtInfo = currentAccountService.calculateDebtAndOverdue(patient.getId());
 
-            BigDecimal debtPesos = BigDecimal.ZERO;
-            BigDecimal debtDolares = BigDecimal.ZERO;
-
-            if (lastRecord != null && (lastRecord.getCanceled() == null || !lastRecord.getCanceled())) {
-                debtPesos = lastRecord.getBalancePesos() != null ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
-                debtDolares = lastRecord.getBalanceDollars() != null ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
-            }
-
-            if (debtPesos.compareTo(BigDecimal.ZERO) > 0 || debtDolares.compareTo(BigDecimal.ZERO) > 0) {
+            if (debtInfo.getDebtPesos().compareTo(BigDecimal.ZERO) > 0 || debtInfo.getDebtDolares().compareTo(BigDecimal.ZERO) > 0) {
                 PatientDebtorDTO dto = new PatientDebtorDTO();
                 dto.setId(patient.getId());
                 dto.setDni(patient.getDni());
                 dto.setFullName(patient.getFullName());
-                dto.setDebtPesos(debtPesos);
-                dto.setDebtDolares(debtDolares);
+                dto.setDebtPesos(debtInfo.getDebtPesos());
+                dto.setDebtDolares(debtInfo.getDebtDolares());
+                dto.setOverdue(debtInfo.isOverdue()); // ¡LA DATA ESTRELLA!
 
                 debtors.add(dto);
             }
         }
-
         return debtors;
     }
 
     public List<PatientDebtorDTO> getDebtorPatientsByDoctor(Long doctorId) {
         Label deudorLabel = labelRepository.findByLabel("Deudor").orElse(null);
-
-        if (deudorLabel == null) {
-            return new ArrayList<>();
-        }
+        if (deudorLabel == null) return new ArrayList<>();
 
         User doctor = userRepository.findById(doctorId).orElse(null);
-        if (doctor == null) {
-            return new ArrayList<>();
-        }
+        if (doctor == null) return new ArrayList<>();
 
         List<LabelPatient> relations = labelPatientRepository.findLabelPatientByLabel(deudorLabel.getId());
         List<PatientDebtorDTO> debtors = new ArrayList<>();
 
         for (LabelPatient relation : relations) {
             Patient patient = relation.getPatient();
+            PatientDebtInfo debtInfo = currentAccountService.calculateDebtAndOverdue(patient.getId());
 
-            com.ciro.backend.entity.CurrentAccount lastRecord = currentAccountRepository
-                    .findTopByPatientIdOrderByIdDesc(patient.getId())
-                    .orElse(null);
+            if (debtInfo.getDebtPesos().compareTo(BigDecimal.ZERO) > 0 || debtInfo.getDebtDolares().compareTo(BigDecimal.ZERO) > 0) {
 
-            BigDecimal debtPesos = BigDecimal.ZERO;
-            BigDecimal debtDolares = BigDecimal.ZERO;
-
-            if (lastRecord != null && (lastRecord.getCanceled() == null || !lastRecord.getCanceled())) {
-                debtPesos = lastRecord.getBalancePesos() != null ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
-                debtDolares = lastRecord.getBalanceDollars() != null ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
-            }
-
-            if (debtPesos.compareTo(BigDecimal.ZERO) > 0 || debtDolares.compareTo(BigDecimal.ZERO) > 0) {
-
-                List<CurrentAccount> patientHistory = currentAccountRepository.findByPatientId(patient.getId());
-                boolean owesThisDoctor = false;
-
-                for (int i = patientHistory.size() - 1; i >= 0; i--) {
-                    CurrentAccount record = patientHistory.get(i);
-
-                    if (record.getCanceled() != null && record.getCanceled()) {
-                        break;
-                    }
-
-                    if (record.getType() == CurrentAccountType.VOUCHER && record.getVoucher() != null) {
-                        if (record.getVoucher().getUser() != null && record.getVoucher().getUser().getId().equals(doctorId)) {
-                            owesThisDoctor = true;
-                            break;
-                        }
-                    }
-                }
+                boolean owesThisDoctor = debtInfo.getUnpaidDetails().stream()
+                        .anyMatch(vd -> vd.getVoucher().getUser() != null && vd.getVoucher().getUser().getId().equals(doctorId));
 
                 if (owesThisDoctor) {
                     PatientDebtorDTO dto = new PatientDebtorDTO();
                     dto.setId(patient.getId());
                     dto.setDni(patient.getDni());
                     dto.setFullName(patient.getFullName());
-                    dto.setDebtPesos(debtPesos);
-                    dto.setDebtDolares(debtDolares);
+                    dto.setDebtPesos(debtInfo.getDebtPesos());
+                    dto.setDebtDolares(debtInfo.getDebtDolares());
+                    dto.setOverdue(debtInfo.isOverdue());
                     dto.setDoctorId(doctor.getId());
                     dto.setDoctorName(doctor.getName() + " " + doctor.getLastname());
 
@@ -326,7 +282,6 @@ public class PatientService {
                 }
             }
         }
-
         return debtors;
     }
 

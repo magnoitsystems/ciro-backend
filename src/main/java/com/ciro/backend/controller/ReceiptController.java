@@ -64,4 +64,12 @@ public class ReceiptController {
                 .body(pdfBytes);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<ReceiptResponseDTO> updateReceipt(
+            @PathVariable Long id,
+            @RequestBody ReceiptCreateDTO dto) {
+        ReceiptResponseDTO updatedReceipt = receiptService.updateReceipt(id, dto);
+        return ResponseEntity.ok(updatedReceipt);
+    }
+
 }

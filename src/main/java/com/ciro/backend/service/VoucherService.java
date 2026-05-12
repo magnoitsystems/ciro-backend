@@ -156,6 +156,8 @@ public class VoucherService {
         voucher.setTotal_amount(newTotalAmount);
         Voucher updatedVoucher = voucherRepository.save(voucher);
 
+        currentAccountService.rebuildPatientBalances(updatedVoucher.getPatient().getId());
+
         return new VoucherResponseDTO(updatedVoucher.getId(), updatedVoucher.getVoucherDate(), newTotalAmount, updatedVoucher.getCurrencyType());
     }
 

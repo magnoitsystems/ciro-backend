@@ -2,7 +2,9 @@ package com.ciro.backend.service;
 
 import com.ciro.backend.dto.*;
 import com.ciro.backend.entity.*;
+import com.ciro.backend.enums.CurrencyType;
 import com.ciro.backend.enums.CurrentAccountType;
+import com.ciro.backend.enums.PaymentMethod;
 import com.ciro.backend.exception.BadRequestException;
 import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.*;
@@ -11,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -21,34 +25,128 @@ public class CurrentAccountService {
     @Autowired private PatientRepository patientRepository;
     @Autowired private LabelRepository labelRepository;
     @Autowired private LabelPatientRepository labelPatientRepository;
+    @Autowired private VoucherRepository voucherRepository;
+    @Autowired private VoucherDetailRepository voucherDetailRepository;
+    @Autowired private ReceiptRepository receiptRepository;
+
+    public PatientDebtInfo calculateDebtAndOverdue(Long patientId) {
+        List<Voucher> vouchers = voucherRepository.findByPatientId(patientId);
+        List<Receipt> receiptsDesc = receiptRepository.findByPatientIdOrderByReceiptDateDesc(patientId);
+        List<Receipt> receipts = new ArrayList<>(receiptsDesc);
+        Collections.reverse(receipts);
+
+        BigDecimal debtPesos = BigDecimal.ZERO;
+        BigDecimal debtDolares = BigDecimal.ZERO;
+        boolean isOverdue = false;
+
+        class DetailRem {
+            VoucherDetail detail;
+            BigDecimal remaining;
+            CurrencyType currency;
+            DetailRem(VoucherDetail d, CurrencyType c) {
+                detail = d;
+                remaining = d.getUnitPrice().multiply(new BigDecimal(d.getAmount()));
+                currency = c;
+            }
+        }
+
+        List<DetailRem> pendingDetails = new ArrayList<>();
+        for (Voucher v : vouchers) {
+            List<VoucherDetail> vDetails = voucherDetailRepository.findByVoucherId(v.getId());
+            for (VoucherDetail vd : vDetails) {
+                pendingDetails.add(new DetailRem(vd, v.getCurrencyType()));
+            }
+        }
+
+        pendingDetails.sort((a, b) -> {
+            LocalDate d1 = a.detail.getDueDate() != null ? a.detail.getDueDate() : LocalDate.MAX;
+            LocalDate d2 = b.detail.getDueDate() != null ? b.detail.getDueDate() : LocalDate.MAX;
+            return d1.compareTo(d2);
+        });
+
+        for (Receipt r : receipts) {
+            BigDecimal amountToApply = r.getAmount();
+            CurrencyType rCurrency = r.getCurrencyType();
+
+            if (r.getCurrencyType() == CurrencyType.PESOS && r.getConvertedAmount() != null && r.getConvertedAmount().compareTo(BigDecimal.ZERO) > 0) {
+                amountToApply = r.getConvertedAmount();
+                rCurrency = CurrencyType.DOLARES;
+            }
+
+            if (r.getVoucherDetail() != null) {
+                for (DetailRem dr : pendingDetails) {
+                    if (dr.detail.getId().equals(r.getVoucherDetail().getId())) {
+                        BigDecimal applied = amountToApply.min(dr.remaining);
+                        dr.remaining = dr.remaining.subtract(applied);
+                        amountToApply = amountToApply.subtract(applied);
+                        break;
+                    }
+                }
+            }
+
+            if (amountToApply.compareTo(BigDecimal.ZERO) > 0 && r.getVoucher() != null) {
+                for (DetailRem dr : pendingDetails) {
+                    if (dr.remaining.compareTo(BigDecimal.ZERO) > 0 && dr.detail.getVoucher().getId().equals(r.getVoucher().getId())) {
+                        BigDecimal applied = amountToApply.min(dr.remaining);
+                        dr.remaining = dr.remaining.subtract(applied);
+                        amountToApply = amountToApply.subtract(applied);
+                        if (amountToApply.compareTo(BigDecimal.ZERO) <= 0) break;
+                    }
+                }
+            }
+
+            if (amountToApply.compareTo(BigDecimal.ZERO) > 0) {
+                for (DetailRem dr : pendingDetails) {
+                    if (dr.currency == rCurrency && dr.remaining.compareTo(BigDecimal.ZERO) > 0) {
+                        BigDecimal applied = amountToApply.min(dr.remaining);
+                        dr.remaining = dr.remaining.subtract(applied);
+                        amountToApply = amountToApply.subtract(applied);
+                        if (amountToApply.compareTo(BigDecimal.ZERO) <= 0) break;
+                    }
+                }
+            }
+        }
+
+        LocalDate today = LocalDate.now();
+        List<VoucherDetail> unpaidDetails = new ArrayList<>();
+
+        for (DetailRem dr : pendingDetails) {
+            if (dr.remaining.compareTo(BigDecimal.ZERO) > 0) {
+                unpaidDetails.add(dr.detail);
+                if (dr.currency == CurrencyType.PESOS) {
+                    debtPesos = debtPesos.add(dr.remaining);
+                } else {
+                    debtDolares = debtDolares.add(dr.remaining);
+                }
+
+                // SI DEBE DINERO Y LA FECHA LÍMITE YA PASÓ = ATRASADO
+                if (dr.detail.getDueDate() != null && dr.detail.getDueDate().isBefore(today)) {
+                    isOverdue = true;
+                }
+            }
+        }
+
+        return new PatientDebtInfo(debtPesos, debtDolares, isOverdue, unpaidDetails);
+    }
 
     public CurrentAccountResponseDTO getPatientCurrentAccount(Long patientId, CurrentAccountType type) {
-
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+
+        PatientDebtInfo debtInfo = calculateDebtAndOverdue(patientId);
 
         CurrentAccountResponseDTO response = new CurrentAccountResponseDTO();
         response.setPatientId(patient.getId());
         response.setPatientFullName(patient.getFullName());
+        response.setDebtInPesos(debtInfo.getDebtPesos());
+        response.setDebtInDollars(debtInfo.getDebtDolares());
 
-        CurrentAccount lastRecord = currentAccountRepository.findTopByPatientIdOrderByIdDesc(patientId).orElse(null);
+        List<CurrentAccount> accounts = currentAccountRepository.findByPatientId(patientId);
+        // Ordenar DESC para mostrar el más nuevo arriba
+        accounts.sort((a, b) -> b.getId().compareTo(a.getId()));
 
-        BigDecimal currentPesos = BigDecimal.ZERO;
-        BigDecimal currentDollars = BigDecimal.ZERO;
-
-        if (lastRecord != null && (lastRecord.getCanceled() == null || !lastRecord.getCanceled())) {
-            currentPesos = lastRecord.getBalancePesos() != null ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
-            currentDollars = lastRecord.getBalanceDollars() != null ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
-        }
-
-        response.setDebtInPesos(currentPesos.compareTo(BigDecimal.ZERO) > 0 ? currentPesos : BigDecimal.ZERO);
-        response.setDebtInDollars(currentDollars.compareTo(BigDecimal.ZERO) > 0 ? currentDollars : BigDecimal.ZERO);
-
-        List<CurrentAccount> accounts;
         if (type != null) {
-            accounts = currentAccountRepository.findByPatientIdAndTypeOrderByIdDesc(patientId, type);
-        } else {
-            accounts = currentAccountRepository.findByPatientIdOrderByIdDesc(patientId);
+            accounts.removeIf(acc -> acc.getType() != type);
         }
 
         List<CurrentAccountMovementDTO> movements = new ArrayList<>();
@@ -62,12 +160,9 @@ public class CurrentAccountService {
             mov.setTransactionAmountDollars(acc.getTransactionAmountDollars() != null ? acc.getTransactionAmountDollars() : BigDecimal.ZERO);
             mov.setBalancePesos(acc.getBalancePesos() != null ? acc.getBalancePesos() : BigDecimal.ZERO);
             mov.setBalanceDollars(acc.getBalanceDollars() != null ? acc.getBalanceDollars() : BigDecimal.ZERO);
-            if (acc.getReceipt() != null) {
-                mov.setReceiptId(acc.getReceipt().getId());
-            }
-            if (acc.getVoucher() != null) {
-                mov.setVoucherId(acc.getVoucher().getId());
-            }
+
+            if (acc.getReceipt() != null) mov.setReceiptId(acc.getReceipt().getId());
+            if (acc.getVoucher() != null) mov.setVoucherId(acc.getVoucher().getId());
 
             if (acc.getType() == CurrentAccountType.VOUCHER && acc.getVoucher() != null) {
                 Voucher v = acc.getVoucher();
@@ -79,60 +174,140 @@ public class CurrentAccountService {
                 Receipt r = acc.getReceipt();
                 mov.setDate(r.getReceiptDate());
 
-                if (r.getConvertedAmount() != null && r.getConvertedAmount().compareTo(BigDecimal.ZERO) > 0) {
-                    mov.setDetail("Recibo #" + r.getId() + " - Pagó $" + r.getAmount() + " PESOS (Cot: $" + r.getExchangeRate() + ") para saldar U$D " + r.getConvertedAmount());
-                } else {
-                    mov.setDetail("Recibo #" + r.getId() + " - Pago de " + r.getCurrencyType());
-                }
-            }
+                String associatedText = r.getVoucherDetail() != null ? " (Pago de Detalle #" + r.getVoucherDetail().getId() + ")" :
+                        (r.getVoucher() != null ? " (Pago de Comprobante #" + r.getVoucher().getId() + ")" : "");
 
+                if (r.getConvertedAmount() != null && r.getConvertedAmount().compareTo(BigDecimal.ZERO) > 0) {
+                    mov.setDetail("Recibo #" + r.getId() + associatedText + " - Pagó $" + r.getAmount() + " PESOS (Cot: $" + r.getExchangeRate() + ") para saldar U$D " + r.getConvertedAmount());
+                } else {
+                    mov.setDetail("Recibo #" + r.getId() + associatedText + " - Pago de " + r.getCurrencyType());
+                }
+            } else if (acc.getCanceled() != null && acc.getCanceled()) {
+                mov.setDate(LocalDate.now());
+                mov.setDetail("Ajuste Manual / Cancelación de Deuda");
+            }
             movements.add(mov);
         }
-
         response.setMovements(movements);
         return response;
     }
 
     @Transactional
+    public void rebuildPatientBalances(Long patientId) {
+        List<CurrentAccount> accounts = currentAccountRepository.findByPatientId(patientId);
+        accounts.sort((a, b) -> a.getId().compareTo(b.getId()));
+
+        BigDecimal bPesos = BigDecimal.ZERO;
+        BigDecimal bDollars = BigDecimal.ZERO;
+
+        for(CurrentAccount acc : accounts) {
+            if (acc.getType() == CurrentAccountType.VOUCHER && acc.getVoucher() != null) {
+                Voucher v = acc.getVoucher();
+                if (v.getCurrencyType() == CurrencyType.PESOS) {
+                    acc.setTransactionAmountPesos(v.getTotal_amount());
+                    acc.setTransactionAmountDollars(BigDecimal.ZERO);
+                    bPesos = bPesos.add(v.getTotal_amount());
+                } else {
+                    acc.setTransactionAmountPesos(BigDecimal.ZERO);
+                    acc.setTransactionAmountDollars(v.getTotal_amount());
+                    bDollars = bDollars.add(v.getTotal_amount());
+                }
+            } else if (acc.getType() == CurrentAccountType.RECEIPT && acc.getReceipt() != null) {
+                Receipt r = acc.getReceipt();
+                BigDecimal txPesos = BigDecimal.ZERO;
+                BigDecimal txDollars = BigDecimal.ZERO;
+
+                if (r.getCurrencyType() == CurrencyType.PESOS && r.getConvertedAmount() != null && r.getConvertedAmount().compareTo(BigDecimal.ZERO) > 0) {
+                    txDollars = r.getConvertedAmount();
+                    txPesos = r.getAmount();
+                    bDollars = bDollars.subtract(txDollars);
+                } else {
+                    if (r.getCurrencyType() == CurrencyType.PESOS) {
+                        txPesos = r.getAmount();
+                        bPesos = bPesos.subtract(txPesos);
+                    } else {
+                        txDollars = r.getAmount();
+                        bDollars = bDollars.subtract(txDollars);
+                    }
+                }
+                acc.setTransactionAmountPesos(txPesos);
+                acc.setTransactionAmountDollars(txDollars);
+            }
+
+            if (acc.getCanceled() != null && acc.getCanceled()) {
+                bPesos = BigDecimal.ZERO;
+                bDollars = BigDecimal.ZERO;
+            }
+
+            acc.setBalancePesos(bPesos);
+            acc.setBalanceDollars(bDollars);
+            currentAccountRepository.save(acc);
+        }
+    }
+
+    @Transactional
     public void cancelPatientDebt(Long patientId) {
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 
-        CurrentAccount lastRecord = currentAccountRepository.findTopByPatientIdOrderByIdDesc(patientId)
-                .orElseThrow(() -> new BadRequestException("El paciente no tiene movimientos en su cuenta corriente."));
+        PatientDebtInfo info = calculateDebtAndOverdue(patientId);
 
-        if (lastRecord.getCanceled() != null && lastRecord.getCanceled()) {
-            throw new BadRequestException("La deuda ya se encuentra cancelada o en cero.");
+        if (info.getDebtPesos().compareTo(BigDecimal.ZERO) <= 0 && info.getDebtDolares().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException("El paciente no tiene deuda para cancelar o ya está en cero.");
         }
 
-        lastRecord.setCanceled(true);
-        lastRecord.setBalancePesos(BigDecimal.ZERO);
-        lastRecord.setBalanceDollars(BigDecimal.ZERO);
-        currentAccountRepository.save(lastRecord);
+        if (info.getDebtPesos().compareTo(BigDecimal.ZERO) > 0) {
+            Receipt r = new Receipt();
+            r.setPatient(patient);
+            r.setAmount(info.getDebtPesos());
+            r.setCurrencyType(CurrencyType.PESOS);
+            r.setReceiptDate(LocalDate.now());
+            r.setObservations("Cancelación manual de deuda por sistema");
+            r.setPaymentMethod(PaymentMethod.EFECTIVO);
+            Receipt savedR = receiptRepository.save(r);
 
-        updateDebtorLabel(lastRecord.getPatient());
+            CurrentAccount ca = new CurrentAccount();
+            ca.setPatient(patient);
+            ca.setReceipt(savedR);
+            ca.setType(CurrentAccountType.RECEIPT);
+            ca.setCanceled(true);
+            currentAccountRepository.save(ca);
+        }
+
+        if (info.getDebtDolares().compareTo(BigDecimal.ZERO) > 0) {
+            Receipt r = new Receipt();
+            r.setPatient(patient);
+            r.setAmount(info.getDebtDolares());
+            r.setCurrencyType(CurrencyType.DOLARES);
+            r.setReceiptDate(LocalDate.now());
+            r.setObservations("Cancelación manual de deuda por sistema");
+            r.setPaymentMethod(PaymentMethod.EFECTIVO);
+            Receipt savedR = receiptRepository.save(r);
+
+            CurrentAccount ca = new CurrentAccount();
+            ca.setPatient(patient);
+            ca.setReceipt(savedR);
+            ca.setType(CurrentAccountType.RECEIPT);
+            ca.setCanceled(true);
+            currentAccountRepository.save(ca);
+        }
+
+        rebuildPatientBalances(patientId);
+        updateDebtorLabel(patient);
     }
 
     @Transactional
     public void updateDebtorLabel(Patient patient) {
-        CurrentAccount lastRecord = currentAccountRepository.findTopByPatientIdOrderByIdDesc(patient.getId()).orElse(null);
+        PatientDebtInfo info = calculateDebtAndOverdue(patient.getId());
+        boolean hasDebt = info.getDebtPesos().compareTo(BigDecimal.ZERO) > 0 || info.getDebtDolares().compareTo(BigDecimal.ZERO) > 0;
 
-        BigDecimal pesosBalance = BigDecimal.ZERO;
-        BigDecimal dolaresBalance = BigDecimal.ZERO;
+        Label debtorLabel = labelRepository.findByLabel("Deudor").orElseGet(() -> {
+            Label newLabel = new Label();
+            newLabel.setLabel("Deudor");
+            return labelRepository.save(newLabel);
+        });
 
-        if (lastRecord != null && (lastRecord.getCanceled() == null || !lastRecord.getCanceled())) {
-            pesosBalance = lastRecord.getBalancePesos() != null ? lastRecord.getBalancePesos() : BigDecimal.ZERO;
-            dolaresBalance = lastRecord.getBalanceDollars() != null ? lastRecord.getBalanceDollars() : BigDecimal.ZERO;
-        }
-
-        boolean hasDebt = pesosBalance.compareTo(BigDecimal.ZERO) > 0 || dolaresBalance.compareTo(BigDecimal.ZERO) > 0;
-
-        Label debtorLabel = labelRepository.findByLabel("Deudor")
-                .orElseGet(() -> {
-                    Label newLabel = new Label();
-                    newLabel.setLabel("Deudor");
-                    return labelRepository.save(newLabel);
-                });
-
-        LabelPatient existingRelation = labelPatientRepository.findByPatientIdAndLabelId(patient.getId(), debtorLabel.getId()).orElse(null);;
+        LabelPatient existingRelation = labelPatientRepository.findByPatientIdAndLabelId(patient.getId(), debtorLabel.getId()).orElse(null);
         boolean alreadyHasLabel = (existingRelation != null);
 
         if (hasDebt && !alreadyHasLabel) {
