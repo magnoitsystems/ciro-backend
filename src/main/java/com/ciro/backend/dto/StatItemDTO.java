@@ -10,19 +10,19 @@ public class StatItemDTO {
     private BigDecimal amount;
     private Long count;
     private Double percentage;
-    private List<Long> referenceIds;
+    private List<DrillDownDetailDTO> details;
 
-    public StatItemDTO(String label, Long count, Double percentage, List<Long> referenceIds) {
+    public StatItemDTO(String label, Long count, Double percentage, List<DrillDownDetailDTO> details) {
         this.label = label;
         this.count = count;
         this.percentage = percentage;
-        this.referenceIds = referenceIds;
+        this.details = details;
     }
 
-    public StatItemDTO(String label, BigDecimal amount, Double percentage, List<Long> referenceIds) {
+    public StatItemDTO(String label, BigDecimal amount, Double percentage, List<DrillDownDetailDTO> details) {
         this.label = label;
         this.amount = amount;
         this.percentage = percentage;
-        this.referenceIds = referenceIds;
+        this.details = details;
     }
 }

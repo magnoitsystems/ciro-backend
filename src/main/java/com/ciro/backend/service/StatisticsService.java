@@ -41,7 +41,6 @@ public class StatisticsService {
         StatisticsResponseDTO response = new StatisticsResponseDTO();
         response.setFinancial(buildFinancialStats(startDate, endDate));
         response.setPatients(buildPatientStats(startDate, endDate));
-        response.setImplantsThisMonth(0L);
 
         return response;
     }
@@ -96,7 +95,12 @@ public class StatisticsService {
             List<CashMovement> movs = entry.getValue();
 
             BigDecimal amount = movs.stream().map(CashMovement::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-            List<Long> ids = movs.stream().map(CashMovement::getId).toList();
+
+            List<DrillDownDetailDTO> details = movs.stream().map(m -> new DrillDownDetailDTO(
+                    m.getId(),
+                    m.getObservations() != null && !m.getObservations().isEmpty() ? m.getObservations() : "Movimiento sin descripción",
+                    "Monto: $" + m.getAmount() + " (" + m.getMovementDate().toLocalDate() + ")"
+            )).toList();
 
             BigDecimal totalRef = label.startsWith("PESOS") ? totalPesos : totalDolares;
             double percentage = 0.0;
@@ -104,24 +108,37 @@ public class StatisticsService {
                 percentage = amount.divide(totalRef, 4, RoundingMode.HALF_UP).doubleValue() * 100;
             }
 
-            list.add(new StatItemDTO(label, amount, Math.round(percentage * 10.0) / 10.0, ids));
+            list.add(new StatItemDTO(label, amount, Math.round(percentage * 10.0) / 10.0, details));
         }
         return list;
     }
 
     private PatientStatsDTO buildPatientStats(LocalDate startDate, LocalDate endDate) {
         PatientStatsDTO patStats = new PatientStatsDTO();
-
         List<Patient> allPatients = patientRepository.findAll();
-
         long totalPatients = allPatients.size();
 
-        long totalDebtors = patientService.getDebtorPatients().size();
+        List<PatientDebtorDTO> debtors = patientService.getDebtorPatients();
+        long totalDebtors = debtors.size();
         long totalNonDebtors = totalPatients - totalDebtors;
 
         patStats.setTotalPatients(totalPatients);
         patStats.setTotalDebtors(totalDebtors);
         patStats.setTotalNonDebtors(totalNonDebtors);
+
+        List<DrillDownDetailDTO> debtorsDetails = debtors.stream().map(d -> new DrillDownDetailDTO(
+                d.getId(),
+                d.getFullName(),
+                "DNI: " + d.getDni() + " | Deuda: $" + d.getDebtPesos() + " / U$D " + d.getDebtDolares()
+        )).toList();
+        patStats.setDebtorsDetails(debtorsDetails);
+
+        List<Long> debtorIds = debtors.stream().map(PatientDebtorDTO::getId).toList();
+        List<DrillDownDetailDTO> nonDebtorsDetails = allPatients.stream()
+                .filter(p -> !debtorIds.contains(p.getId()))
+                .map(p -> new DrillDownDetailDTO(p.getId(), p.getFullName(), "DNI: " + p.getDni() + " (Al día)"))
+                .toList();
+        patStats.setNonDebtorsDetails(nonDebtorsDetails);
 
         patStats.setPatientsByOrigin(groupPatientsBy(allPatients, p -> p.getFrom() != null ? p.getFrom().name() : "Otro"));
         patStats.setPatientsByCity(groupPatientsBy(allPatients, p -> p.getCity() != null && !p.getCity().isEmpty() ? p.getCity() : "Otra"));
@@ -138,10 +155,15 @@ public class StatisticsService {
 
         for (Map.Entry<String, List<Patient>> entry : grouped.entrySet()) {
             long count = entry.getValue().size();
-            List<Long> ids = entry.getValue().stream().map(Patient::getId).toList();
-            double percentage = total > 0 ? ((double) count / total) * 100 : 0;
 
-            list.add(new StatItemDTO(entry.getKey(), count, Math.round(percentage * 10.0) / 10.0, ids));
+            List<DrillDownDetailDTO> details = entry.getValue().stream().map(p -> new DrillDownDetailDTO(
+                    p.getId(),
+                    p.getFullName(),
+                    "DNI: " + p.getDni()
+            )).toList();
+
+            double percentage = total > 0 ? ((double) count / total) * 100 : 0;
+            list.add(new StatItemDTO(entry.getKey(), count, Math.round(percentage * 10.0) / 10.0, details));
         }
         return list;
     }

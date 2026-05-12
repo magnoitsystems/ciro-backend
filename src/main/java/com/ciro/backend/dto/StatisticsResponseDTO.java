@@ -1,11 +1,23 @@
 package com.ciro.backend.dto;
 
-import lombok.Data;
-
-@Data
 public class StatisticsResponseDTO {
     private FinancialStatsDTO financial;
     private PatientStatsDTO patients;
-    private Long implantsThisMonth;
+
+    public FinancialStatsDTO getFinancial() {
+        return financial;
+    }
+
+    public void setFinancial(FinancialStatsDTO financial) {
+        this.financial = financial;
+    }
+
+    public PatientStatsDTO getPatients() {
+        return patients;
+    }
+
+    public void setPatients(PatientStatsDTO patients) {
+        this.patients = patients;
+    }
 }
 
