@@ -34,7 +34,6 @@ public class CashMovementController {
         return ResponseEntity.ok(cashMovementService.getCashMovements(doctorId, period));
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/report/pdf")
     public ResponseEntity<byte[]> downloadCashReport(
             @RequestParam(required = false) Long doctorId,

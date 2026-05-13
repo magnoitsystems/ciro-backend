@@ -77,6 +77,16 @@ public class PdfGenerationService {
                 table.addCell(new Phrase("U$D " + receipt.getConvertedAmount(), normalFont));
             }
 
+            if (receipt.getVoucherId() != null) {
+                table.addCell(new Phrase("Comprobante Imputado:", boldFont));
+                table.addCell(new Phrase("Comprobante #" + receipt.getVoucherId(), normalFont));
+            }
+
+            if (receipt.getVoucherDetailId() != null) {
+                table.addCell(new Phrase("Detalle Imputado:", boldFont));
+                table.addCell(new Phrase("Detalle #" + receipt.getVoucherDetailId(), normalFont));
+            }
+
             table.getDefaultCell().setBorder(Rectangle.NO_BORDER);
             for (int i = 0; i < table.getRows().size(); i++) {
                 for (int j = 0; j < table.getRow(i).getCells().length; j++) {
@@ -141,7 +151,6 @@ public class PdfGenerationService {
             table.addCell(new PdfPCell(new Phrase("Moneda", headFont)));
             table.addCell(new PdfPCell(new Phrase("Monto", headFont)));
 
-            // Acumuladores separados por moneda
             Map<com.ciro.backend.enums.CurrencyType, BigDecimal> totalSueldos = new HashMap<>();
             Map<com.ciro.backend.enums.CurrencyType, BigDecimal> totalServicios = new HashMap<>();
             Map<com.ciro.backend.enums.CurrencyType, BigDecimal> totalCaja = new HashMap<>();
@@ -164,7 +173,6 @@ public class PdfGenerationService {
                 String symbol = (b.getCurrencyType() == com.ciro.backend.enums.CurrencyType.DOLARES) ? "U$D " : "$ ";
                 table.addCell(new Phrase(symbol + b.getAmount().toString(), rowFont));
 
-                // Acumular según la moneda
                 com.ciro.backend.enums.CurrencyType curr = b.getCurrencyType();
                 if (curr != null) {
                     totalGeneral.put(curr, totalGeneral.getOrDefault(curr, BigDecimal.ZERO).add(b.getAmount()));
@@ -182,7 +190,6 @@ public class PdfGenerationService {
             document.add(table);
             document.add(new Paragraph(" ", rowFont));
 
-            // Resumen agrupado por moneda
             Paragraph resTitle = new Paragraph("RESUMEN DE GASTOS POR MONEDA", headFont);
             resTitle.setSpacingAfter(10);
             document.add(resTitle);
@@ -198,7 +205,6 @@ public class PdfGenerationService {
             addSummaryRow(summaryTable, "PAGADO DE CAJA", totalCaja, rowFont);
             addSummaryRow(summaryTable, "PAGADO POR DOCTOR", totalDoctor, rowFont);
 
-            // TOTAL GENERAL
             PdfPCell totalGeneralCell = new PdfPCell(new Phrase("TOTAL GENERAL:", headFont));
             totalGeneralCell.setBackgroundColor(new java.awt.Color(230, 230, 230));
             summaryTable.addCell(totalGeneralCell);
@@ -302,7 +308,7 @@ public class PdfGenerationService {
             document.add(table);
             document.add(new Paragraph("\n"));
 
-            Paragraph resTitle = new Paragraph("RESUMEN DE SALDOS", headFont);
+            Paragraph resTitle = new Paragraph("RESUMEN NETO DE SALDOS", headFont);
             resTitle.setSpacingAfter(10);
             document.add(resTitle);
 
@@ -311,7 +317,7 @@ public class PdfGenerationService {
             summaryTable.addCell(new PdfPCell(new Phrase("Moneda", headFont)));
             summaryTable.addCell(new PdfPCell(new Phrase("Total Entradas (+)", headFont)));
             summaryTable.addCell(new PdfPCell(new Phrase("Total Salidas (-)", headFont)));
-            summaryTable.addCell(new PdfPCell(new Phrase("SALDO FINAL", headFont)));
+            summaryTable.addCell(new PdfPCell(new Phrase("GANANCIA NETA", headFont)));
 
             for (CurrencyType ct : CurrencyType.values()) {
                 BigDecimal in = ingresosPorMoneda.getOrDefault(ct, BigDecimal.ZERO);
