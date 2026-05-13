@@ -19,4 +19,7 @@ public interface CurrentAccountRepository extends JpaRepository<CurrentAccount, 
     Optional<CurrentAccount> findTopByPatientIdAndCanceledFalseOrderByIdDesc(Long patientId);
 
     List<CurrentAccount> findByPatientId(Long id);
+
+    List<CurrentAccount> findByReceiptId(Long receiptId);
+    List<CurrentAccount> findByVoucherId(Long voucherId);
 }

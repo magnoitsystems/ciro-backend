@@ -29,4 +29,6 @@ public interface ReceiptRepository extends JpaRepository<Receipt, Long> {
     List<Object[]> sumIncomeByCurrencyAndPaymentMethod(@Param("startDate") java.time.LocalDate startDate, @Param("endDate") java.time.LocalDate endDate);
 
     List<Receipt> findByReceiptDateBetween(LocalDate startDate, LocalDate endDate);
+
+    List<Receipt> findByVoucherId(Long voucherId);
 }

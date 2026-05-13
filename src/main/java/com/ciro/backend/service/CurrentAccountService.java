@@ -200,28 +200,39 @@ public class CurrentAccountService {
         BigDecimal bPesos = BigDecimal.ZERO;
         BigDecimal bDollars = BigDecimal.ZERO;
 
-        for(CurrentAccount acc : accounts) {
+        for (CurrentAccount acc : accounts) {
+
+            if (acc.getCanceled() != null && acc.getCanceled()) {
+                acc.setTransactionAmountPesos(BigDecimal.ZERO);
+                acc.setTransactionAmountDollars(BigDecimal.ZERO);
+                acc.setBalancePesos(bPesos);
+                acc.setBalanceDollars(bDollars);
+                currentAccountRepository.save(acc);
+                continue;
+            }
+
+            BigDecimal txPesos = BigDecimal.ZERO;
+            BigDecimal txDollars = BigDecimal.ZERO;
+
             if (acc.getType() == CurrentAccountType.VOUCHER && acc.getVoucher() != null) {
                 Voucher v = acc.getVoucher();
                 if (v.getCurrencyType() == CurrencyType.PESOS) {
-                    acc.setTransactionAmountPesos(v.getTotal_amount());
-                    acc.setTransactionAmountDollars(BigDecimal.ZERO);
-                    bPesos = bPesos.add(v.getTotal_amount());
+                    txPesos = v.getTotal_amount();
+                    bPesos = bPesos.add(txPesos);
                 } else {
-                    acc.setTransactionAmountPesos(BigDecimal.ZERO);
-                    acc.setTransactionAmountDollars(v.getTotal_amount());
-                    bDollars = bDollars.add(v.getTotal_amount());
+                    txDollars = v.getTotal_amount();
+                    bDollars = bDollars.add(txDollars);
                 }
-            } else if (acc.getType() == CurrentAccountType.RECEIPT && acc.getReceipt() != null) {
+            }
+            else if (acc.getType() == CurrentAccountType.RECEIPT && acc.getReceipt() != null) {
                 Receipt r = acc.getReceipt();
-                BigDecimal txPesos = BigDecimal.ZERO;
-                BigDecimal txDollars = BigDecimal.ZERO;
 
                 if (r.getCurrencyType() == CurrencyType.PESOS && r.getConvertedAmount() != null && r.getConvertedAmount().compareTo(BigDecimal.ZERO) > 0) {
-                    txDollars = r.getConvertedAmount();
                     txPesos = r.getAmount();
+                    txDollars = r.getConvertedAmount();
                     bDollars = bDollars.subtract(txDollars);
-                } else {
+                }
+                else {
                     if (r.getCurrencyType() == CurrencyType.PESOS) {
                         txPesos = r.getAmount();
                         bPesos = bPesos.subtract(txPesos);
@@ -230,17 +241,14 @@ public class CurrentAccountService {
                         bDollars = bDollars.subtract(txDollars);
                     }
                 }
-                acc.setTransactionAmountPesos(txPesos);
-                acc.setTransactionAmountDollars(txDollars);
             }
 
-            if (acc.getCanceled() != null && acc.getCanceled()) {
-                bPesos = BigDecimal.ZERO;
-                bDollars = BigDecimal.ZERO;
-            }
+            acc.setTransactionAmountPesos(txPesos);
+            acc.setTransactionAmountDollars(txDollars);
 
             acc.setBalancePesos(bPesos);
             acc.setBalanceDollars(bDollars);
+
             currentAccountRepository.save(acc);
         }
     }

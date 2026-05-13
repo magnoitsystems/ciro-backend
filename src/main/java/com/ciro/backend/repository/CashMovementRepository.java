@@ -22,4 +22,6 @@ public interface CashMovementRepository extends JpaRepository<CashMovement, Long
     boolean existsByTypeAndReferenceId(CashMovementType type, Long referenceId);
 
     List<CashMovement> findByDoctorIdAndType(Long doctorId, CashMovementType type);
+
+    List<CashMovement> findByReferenceIdAndType(Long referenceId, CashMovementType type);
 }

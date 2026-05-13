@@ -13,6 +13,7 @@ import com.ciro.backend.repository.ReceiptRepository;
 import com.ciro.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -208,5 +209,13 @@ public class CashMovementService {
         }
 
         return new RevenueWidgetDTO(balancePesos, balanceDolares);
+    }
+
+    @Transactional
+    public void deleteMovementByReference(Long referenceId, CashMovementType type) {
+        List<CashMovement> movements = cashMovementRepository.findByReferenceIdAndType(referenceId, type);
+        if (!movements.isEmpty()) {
+            cashMovementRepository.deleteAll(movements);
+        }
     }
 }

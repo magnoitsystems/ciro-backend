@@ -216,4 +216,28 @@ public class ReceiptService {
         );
         return dto;
     }
+
+    @Transactional
+    public void deleteReceipt(Long id) {
+        Receipt receipt = receiptRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Recibo no encontrado con ID: " + id));
+
+        Patient patient = receipt.getPatient();
+
+        // 1. Eliminar los registros de la Cuenta Corriente asociados a este recibo
+        List<CurrentAccount> accounts = currentAccountRepository.findByReceiptId(id);
+        if (!accounts.isEmpty()) {
+            currentAccountRepository.deleteAll(accounts);
+        }
+
+        // 2. Eliminar el movimiento de Caja asociado (Es un INGRESO referenciado al ID del recibo)
+        cashMovementService.deleteMovementByReference(id, CashMovementType.INGRESO);
+
+        // 3. Eliminar el Recibo
+        receiptRepository.delete(receipt);
+
+        // 4. Reconstruir los saldos del paciente y actualizar la etiqueta de deudor
+        currentAccountService.rebuildPatientBalances(patient.getId());
+        currentAccountService.updateDebtorLabel(patient);
+    }
 }

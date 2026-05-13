@@ -2,7 +2,6 @@ package com.ciro.backend.entity;
 
 import com.ciro.backend.enums.CurrencyType;
 import jakarta.persistence.*;
-import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

@@ -1,6 +1,5 @@
 package com.ciro.backend.controller;
 
-import com.ciro.backend.dto.ReceiptResponseDTO;
 import com.ciro.backend.dto.VoucherCreateDTO;
 import com.ciro.backend.dto.VoucherDTO;
 import com.ciro.backend.dto.VoucherResponseDTO;
@@ -46,5 +45,11 @@ public class VoucherController {
             @RequestBody VoucherCreateDTO dto) {
         VoucherResponseDTO updatedVoucher = voucherService.updateVoucher(id, dto);
         return ResponseEntity.ok(updatedVoucher);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteVoucher(@PathVariable Long id) {
+        voucherService.deleteVoucher(id);
+        return ResponseEntity.noContent().build();
     }
 }

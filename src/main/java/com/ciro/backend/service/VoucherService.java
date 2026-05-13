@@ -25,6 +25,8 @@ public class VoucherService {
     @Autowired private PatientRepository patientRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private CurrentAccountService currentAccountService;
+    @Autowired private ReceiptService receiptService;
+    @Autowired private ReceiptRepository receiptRepository;
 
     @Transactional
     public VoucherResponseDTO createVoucher(VoucherCreateDTO dto) {
@@ -230,5 +232,38 @@ public class VoucherService {
         }
 
         return responseList;
+    }
+
+    @Transactional
+    public void deleteVoucher(Long id) {
+        Voucher voucher = voucherRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Comprobante no encontrado con ID: " + id));
+
+        Patient patient = voucher.getPatient();
+
+        // 1. Buscar y eliminar en cascada todos los recibos asociados a este comprobante
+        List<Receipt> associatedReceipts = receiptRepository.findByVoucherId(id);
+        for (Receipt r : associatedReceipts) {
+            receiptService.deleteReceipt(r.getId());
+        }
+
+        // 2. Eliminar los registros de Cuenta Corriente asociados directamente al comprobante
+        List<CurrentAccount> accounts = currentAccountRepository.findByVoucherId(id);
+        if (!accounts.isEmpty()) {
+            currentAccountRepository.deleteAll(accounts);
+        }
+
+        // 3. Eliminar los detalles del comprobante
+        List<VoucherDetail> details = voucherDetailRepository.findByVoucherId(id);
+        if (!details.isEmpty()) {
+            voucherDetailRepository.deleteAll(details);
+        }
+
+        // 4. Eliminar el comprobante
+        voucherRepository.delete(voucher);
+
+        // 5. Reconstruir los saldos del paciente y actualizar su estado final
+        currentAccountService.rebuildPatientBalances(patient.getId());
+        currentAccountService.updateDebtorLabel(patient);
     }
 }

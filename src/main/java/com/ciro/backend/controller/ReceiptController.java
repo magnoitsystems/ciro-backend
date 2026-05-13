@@ -72,4 +72,10 @@ public class ReceiptController {
         return ResponseEntity.ok(updatedReceipt);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteReceipt(@PathVariable Long id) {
+        receiptService.deleteReceipt(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }
