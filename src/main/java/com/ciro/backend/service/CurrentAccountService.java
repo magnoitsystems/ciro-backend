@@ -5,7 +5,6 @@ import com.ciro.backend.entity.*;
 import com.ciro.backend.enums.CurrencyType;
 import com.ciro.backend.enums.CurrentAccountType;
 import com.ciro.backend.enums.PaymentMethod;
-import com.ciro.backend.exception.BadRequestException;
 import com.ciro.backend.exception.ResourceNotFoundException;
 import com.ciro.backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
