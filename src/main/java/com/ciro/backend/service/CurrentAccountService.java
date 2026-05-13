@@ -254,53 +254,33 @@ public class CurrentAccountService {
     }
 
     @Transactional
-    public void cancelPatientDebt(Long patientId) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+    public void cancelVoucherDebt(Long voucherId) {
+        Voucher voucher = voucherRepository.findById(voucherId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comprobante no encontrado con ID: " + voucherId));
 
-        PatientDebtInfo info = calculateDebtAndOverdue(patientId);
+        Patient patient = voucher.getPatient();
 
-        if (info.getDebtPesos().compareTo(BigDecimal.ZERO) <= 0 && info.getDebtDolares().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException("El paciente no tiene deuda para cancelar o ya está en cero.");
-        }
+        Receipt r = new Receipt();
+        r.setPatient(patient);
+        r.setVoucher(voucher);
+        r.setAmount(voucher.getTotal_amount());
+        r.setCurrencyType(voucher.getCurrencyType());
+        r.setReceiptDate(LocalDate.now());
+        r.setObservations("Cancelación administrativa del comprobante #" + voucherId);
+        r.setPaymentMethod(PaymentMethod.EFECTIVO);
 
-        if (info.getDebtPesos().compareTo(BigDecimal.ZERO) > 0) {
-            Receipt r = new Receipt();
-            r.setPatient(patient);
-            r.setAmount(info.getDebtPesos());
-            r.setCurrencyType(CurrencyType.PESOS);
-            r.setReceiptDate(LocalDate.now());
-            r.setObservations("Cancelación manual de deuda por sistema");
-            r.setPaymentMethod(PaymentMethod.EFECTIVO);
-            Receipt savedR = receiptRepository.save(r);
+        Receipt savedR = receiptRepository.save(r);
 
-            CurrentAccount ca = new CurrentAccount();
-            ca.setPatient(patient);
-            ca.setReceipt(savedR);
-            ca.setType(CurrentAccountType.RECEIPT);
-            ca.setCanceled(true);
-            currentAccountRepository.save(ca);
-        }
+        CurrentAccount ca = new CurrentAccount();
+        ca.setPatient(patient);
+        ca.setReceipt(savedR);
+        ca.setType(CurrentAccountType.RECEIPT);
 
-        if (info.getDebtDolares().compareTo(BigDecimal.ZERO) > 0) {
-            Receipt r = new Receipt();
-            r.setPatient(patient);
-            r.setAmount(info.getDebtDolares());
-            r.setCurrencyType(CurrencyType.DOLARES);
-            r.setReceiptDate(LocalDate.now());
-            r.setObservations("Cancelación manual de deuda por sistema");
-            r.setPaymentMethod(PaymentMethod.EFECTIVO);
-            Receipt savedR = receiptRepository.save(r);
+        ca.setCanceled(false);
 
-            CurrentAccount ca = new CurrentAccount();
-            ca.setPatient(patient);
-            ca.setReceipt(savedR);
-            ca.setType(CurrentAccountType.RECEIPT);
-            ca.setCanceled(true);
-            currentAccountRepository.save(ca);
-        }
+        currentAccountRepository.save(ca);
 
-        rebuildPatientBalances(patientId);
+        rebuildPatientBalances(patient.getId());
         updateDebtorLabel(patient);
     }
 

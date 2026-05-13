@@ -43,9 +43,9 @@ public class CurrentAccountController {
         return ResponseEntity.ok(account);
     }
 
-    @PutMapping("/patient/{patientId}/cancel-debt")
-    public ResponseEntity<String> cancelLastMovement(@PathVariable Long patientId) {
-        currentAccountService.cancelPatientDebt(patientId);
-        return ResponseEntity.ok("El último movimiento fue cancelado exitosamente.");
+    @PutMapping("/voucher/{voucherId}/cancel-debt")
+    public ResponseEntity<String> cancelVoucherDebt(@PathVariable Long voucherId) {
+        currentAccountService.cancelVoucherDebt(voucherId);
+        return ResponseEntity.ok("La deuda del comprobante #" + voucherId + " fue cancelada exitosamente.");
     }
 }
